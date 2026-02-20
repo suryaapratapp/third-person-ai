@@ -1,0 +1,143 @@
+UI Enhancements (Chat Analysis UX, Paste Flow, Preflight, How-It-Works arrows, Profile fields) — UI-only
+
+Context:
+- React + Vite + Tailwind, dark GenZ-love theme.
+- Keep existing routes/component names. No backend changes required for this ticket.
+- Current Chat Analysis has messaging app cards (with file hints) + two buttons: “Upload Export File” and “Paste Chat Text”.
+- We want to improve clarity and trust, and make Paste flow independent but still high quality.
+
+========================================================
+Ticket 1 — Messaging App Cards: remove “Paste (text)” label, keep file hints
+========================================================
+1) On messaging app selection cards:
+   - Remove any “Paste (text)” / “Paste” labels from cards.
+   - Keep ONLY file format hints per app (small, secondary text), e.g.:
+     - WhatsApp: “.txt export”
+     - Telegram: “.json export”
+     - Instagram: “.json / export folder”
+     - Messenger: “.json / export folder”
+     - iMessage: “.csv / .txt transcript”
+     - Snapchat: “.json export”
+2) Keep the cards clickable for app selection (used for Upload flow only).
+3) Visual: make file hints look like small “chips” (muted background, colorful border accent), no emojis.
+
+========================================================
+Ticket 2 — Upload vs Paste: decouple flows but keep both premium
+========================================================
+Goal: Upload is app-linked. Paste is universal (any app / any text) and must guide users to provide clean speaker separation.
+
+A) Two primary buttons remain:
+   - “Upload Export File”
+   - “Paste Chat Text”
+B) Behavior:
+   - Upload Export File: requires a selected app card (whatsapp/telegram/instagram/messenger/imessage/snapchat).
+     - If user clicks Upload without selecting app: show a friendly inline hint “Pick an app first so we can parse correctly.”
+   - Paste Chat Text: does NOT require app selection.
+     - When user enters paste mode, hide/gray out the app selection area and show “Paste works with any chat format.”
+
+C) Paste Mode UX improvements (must)
+1) Add a “Format helper” above the textarea:
+   - “Works best when each message clearly includes a speaker name.”
+   - Provide 2–3 short examples in a collapsible “Show example formats”:
+     Example 1:
+       [10/02/2026, 01:21] Mehak: hey
+       [10/02/2026, 01:22] Surya: hi
+     Example 2:
+       Mehak: hey
+       Surya: hi
+     Example 3 (group):
+       Ankit: …
+       Mehak: …
+       Surya: …
+2) Add a small “Participants detected” pill section that updates live as user types:
+   - Count unique speakers (best-effort heuristic: detect “Name:” prefixes, bracket formats, or “- Name:”)
+   - Show: “Participants: 2 detected” or “Group chat: 4 detected”
+   - If only 1 participant detected: show warning “We need at least 2 people (or distinct speaker labels) for best results.”
+
+========================================================
+Ticket 3 — Paste Mode Timeline Prompt (only if system can’t detect)
+========================================================
+Requirement:
+- After user pastes text, if date range cannot be confidently detected, ask user for approximate timeline.
+
+Implement:
+1) After paste textarea, add a “Timeline” card that appears ONLY when:
+   - text length > threshold (e.g. 200 chars) AND
+   - detectedDateRange is null/unknown (use existing preflight parser logic or a simple heuristic)
+2) Timeline UI:
+   - A segmented control / radio chips:
+     - “1–3 days”
+     - “1–3 weeks”
+     - “1 month”
+     - “More / not sure”
+   - If “More / not sure” selected, show a small optional input:
+     - “Approx start date” (date picker)
+     - “Approx end date” (date picker)
+   - Copy: “This helps us build timelines even when timestamps are missing.”
+3) Store selection in paste preflight state (UI-only), and display it in Preflight Summary “Date range”.
+
+========================================================
+Ticket 4 — Preflight Summary upgrades (both upload + paste)
+========================================================
+In the Preflight Summary panel, include these fields:
+
+1) Messages detected (number)
+2) Date range
+   - If detected: show “Feb 10 → Feb 11 (2 days)”
+   - If unknown and user selected timeline chips: show that selection
+   - If still unknown: show “Unknown (we’ll do best-effort)”
+3) Estimated analysis time (simple, non-promissory label)
+   - e.g. “Quick”, “Medium”, “Deep”
+   - based on message count buckets (no minutes/seconds promises)
+4) Chat Preview (privacy-safe)
+   - Add a “Safety preview” section that scans for restricted/suspicious/harmful content (UI-only heuristic is fine):
+     - phone numbers, emails, addresses, explicit sexual content keywords, self-harm keywords, hate slurs list (minimal)
+   - In preview rendering:
+     - Replace flagged snippets with “Encrypted for your privacy”
+     - Show a lock icon and label “Sensitive content hidden”
+   - Add toggle “Show raw preview” (default OFF) with a warning. For launch, you can keep it disabled or require confirmation.
+5) Ensure these preflight items are visible before “Run Analysis” is enabled.
+
+========================================================
+Ticket 5 — Analysis Flow section: add arrows between steps (Chat Analysis page)
+========================================================
+Update “ANALYSIS FLOW” section:
+- Keep existing steps but add tasteful arrow connectors between them.
+- Use minimal line icons (SVG or lucide) and subtle glow to match dark theme.
+- Ensure responsive layout: horizontal with arrows on desktop; vertical with down-arrows on mobile.
+
+========================================================
+Ticket 6 — Landing page “HOW IT WORKS”: add arrows between steps
+========================================================
+- Add arrow connectors between steps that look good in dark GenZ theme.
+- Use consistent arrow style with Analysis Flow section.
+- Ensure mobile layout switches to vertical with down arrows.
+
+========================================================
+Ticket 7 — Profile page: add general user profile details (UI-only)
+========================================================
+In the Profile section/page:
+1) Add editable fields:
+   - Location (city/country free text + optional dropdown later)
+   - Languages spoken (multi-select chips + allow custom entry)
+   - Favorite food (free text)
+2) Add “Save” button.
+3) Persist locally for now (localStorage) under a single key `tpai_profile`:
+   {
+     location: string,
+     languages: string[],
+     favoriteFood: string
+   }
+4) Show success toast “Profile updated”.
+5) Keep styling consistent with dark theme.
+
+========================================================
+Acceptance Criteria
+========================================================
+- Messaging app cards no longer show “Paste (text)”; they show only file format hints.
+- Paste Chat Text works without selecting an app and guides users to provide speaker-separated text.
+- Timeline chips appear only when timestamps aren’t detected and user has pasted enough text.
+- Preflight Summary includes: Messages detected, Date range, Estimated analysis time label, Safety Preview with encrypted redactions.
+- Analysis Flow and Landing “How It Works” show arrows between steps (desktop + mobile).
+- Profile page includes Location, Languages, Favorite Food and saves locally.
+- No backend changes; no broken routes; `npm run dev` succeeds.

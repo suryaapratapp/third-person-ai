@@ -1,0 +1,125 @@
+Chat Analysis UX Update — Paste independent, optional helpers, Safety Preview only, and “Export steps” CTA on app cards (UI-only)
+
+Context:
+- React + Vite + Tailwind, dark GenZ-love theme.
+- Chat Analysis page currently has messaging app cards + Upload Export File + Paste Chat Text.
+- We want Paste fully independent from messaging apps. Users should not need to select an app to paste.
+- Remove Preflight Summary entirely; keep only Safety Preview.
+- Add “Export steps” button on each messaging app card (visible by default) so users can read instructions BEFORE exporting.
+
+No backend changes required.
+
+========================================================
+Ticket 1 — Separate Upload vs Paste clearly (Paste independent)
+========================================================
+1) On ChatAnalysisPage, restructure into two primary sections/tabs:
+   A) “Upload Export File” (App-based)
+   B) “Paste Chat Text” (Universal)
+2) Paste Chat Text section:
+   - MUST NOT require selecting any messaging app.
+   - Visually de-emphasize/hide the app cards while in Paste mode (or keep them below, but not required).
+   - Copy: “Paste any conversation text. Works best with speaker names and timestamps, but optional.”
+
+========================================================
+Ticket 2 — Paste Chat Text: Optional user-provided helpers (only if missing)
+========================================================
+Goal: If the pasted conversation does not include names or dates (or user thinks it doesn’t), allow them to manually provide:
+- participant names (2+)
+- approximate date range
+
+Implementation:
+1) Add a small “Add missing details (optional)” accordion under the paste textarea.
+2) Inside accordion:
+   A) Participant names (optional)
+      - Default: two inputs (Person A, Person B)
+      - Add “+ Add person” for group chats
+      - Each input is free text; show hint “Use first names or nicknames”
+      - Store as `manualParticipants: string[]`
+   B) Approx date range (optional)
+      - A segmented chip selector:
+        - “1–3 days”
+        - “1–3 weeks”
+        - “1 month”
+        - “More / custom”
+      - If “More / custom”, show optional date pickers:
+        - Start date
+        - End date
+      - Store as `manualDateRange: { preset?: string, start?: string, end?: string }`
+3) Show these helper inputs ONLY when the user toggles the accordion on (keep page clean).
+4) Add small copy:
+   - “If your pasted text doesn’t include names or dates, add them here. Otherwise we’ll infer during analysis.”
+
+Note: This is UI-only. For now, store these fields in the client state and include them as metadata in the request payload if your API already accepts extra fields. If API doesn’t accept them, keep them in frontend state and attach them later once backend supports it.
+
+========================================================
+Ticket 3 — Remove Preflight Summary; keep Safety Preview only
+========================================================
+1) Remove the Preflight Summary panel entirely from both Upload and Paste flows.
+2) Keep only a “Safety Preview” section that appears after:
+   - file selected (upload mode) OR
+   - paste text length exceeds a minimal threshold (paste mode)
+3) Safety Preview behavior:
+   - Render a small preview panel:
+     - shows 8–12 sample lines/messages
+     - REDACT sensitive items and show “Encrypted” placeholders:
+       - phone numbers
+       - emails
+       - addresses (simple heuristics)
+       - explicit sexual content keywords
+       - self-harm keywords
+       - hate slurs list (minimal)
+   - Show a badge “Sensitive content hidden” + lock icon
+   - Include “Why is this hidden?” tooltip explaining privacy
+4) Do NOT add a “Show raw preview” toggle for launch (keep it safest).
+5) Ensure Safety Preview looks attractive in dark theme:
+   - card with subtle glow border
+   - line items with blurred/redacted blocks
+
+========================================================
+Ticket 4 — Messaging App Cards: always show “Export steps” button (attractive)
+========================================================
+Goal: Users can view export instructions before exporting. Make it visible and helpful.
+
+1) Each app card (WhatsApp, iMessage, Telegram, Instagram, Messenger, Snapchat) should include:
+   - App icon/logo
+   - File format hint (chips), e.g. “.txt”, “.json”
+   - A visible secondary button: “Export steps”
+2) Clicking “Export steps” opens a nice modal or side-sheet:
+   - Title: “How to export from <App>”
+   - Step-by-step numbered instructions
+   - Include inline screenshots placeholders (if you already have images, use them; else use styled skeleton frames with “Add screenshot” label)
+   - Include checklist reminders:
+     - “Export without media” (where applicable)
+     - “Don’t include attachments”
+     - “Group chats supported”
+   - Include a “Got it” button
+3) Styling:
+   - Make “Export steps” button attractive:
+     - pill button, gradient border, subtle hover glow
+   - Modal should match the GenZ dark theme; readable typography; not too long; collapsible sections
+
+4) Upload behavior:
+   - Upload Export File flow should STILL benefit from app selection.
+   - When user selects an app card (Upload mode only), highlight it.
+   - Paste mode ignores app selection.
+
+========================================================
+Ticket 5 — Run Analysis button logic (clean and user-friendly)
+========================================================
+1) Paste mode:
+   - Enable “Run analysis” when textarea has sufficient content (e.g. >= 200 chars).
+   - If content too short, show inline message “Paste a bit more text for meaningful insights.”
+2) Upload mode:
+   - Enable “Run analysis” only after a file is selected and accepted.
+3) If user provided manualParticipants/manualDateRange:
+   - show a small “Included: names + timeline” chip near the Run button.
+
+========================================================
+Acceptance Criteria
+========================================================
+- Paste Chat Text works without selecting any messaging app.
+- Users can optionally enter participant names and approximate date range ONLY if they want.
+- Preflight Summary is removed; Safety Preview remains and redacts sensitive content with “Encrypted” placeholders.
+- Every messaging app card includes a visible “Export steps” button that opens attractive instructions modal/sheet.
+- Upload mode still uses app selection; Paste mode does not require it.
+- UI looks GenZ, dark, and polished; no backend changes; `npm run dev` passes.

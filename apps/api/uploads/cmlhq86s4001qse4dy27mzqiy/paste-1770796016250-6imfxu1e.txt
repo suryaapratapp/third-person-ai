@@ -1,0 +1,52 @@
+Fix Chat Analysis “Run Analysis” flow: 401 Unauthorized and 429 spam caused by missing/expired auth token + polling not stopping.
+
+Symptoms:
+- POST /upload-sessions returns 401 Unauthorized.
+- UI continues polling GET /upload-sessions/:id rapidly, triggering 429 Too Many Requests and uncaught promise errors.
+- Console points to src/api/client.js and ChatAnalysisPage.jsx polling loop.
+
+Root causes to address:
+1) apiFetch is not attaching Authorization header with backend access token (token is nested under tokens.accessToken from /auth/login).
+2) ChatAnalysis polling continues even after auth failure / rate limit responses.
+
+Requirements:
+
+A) Normalize auth session shape (single source of truth)
+- Ensure authService stores session consistently as:
+  { user, accessToken, refreshToken }
+  derived from backend login response:
+  { user, tokens: { accessToken, refreshToken } }
+- Update authService.login() to map response into this normalized shape.
+
+B) Fix apiFetch to attach access token
+- In src/api/client.js:
+  - Read accessToken from authService.getSession()
+  - If accessToken exists, set header:
+    Authorization: `Bearer ${accessToken}`
+  - Ensure it is attached for ALL protected requests, including upload-sessions endpoints.
+
+C) Handle 401 globally and in polling
+- In apiFetch:
+  - If response status is 401, clear session and redirect to /auth/signin (or return a structured error so UI can redirect).
+- In ChatAnalysisPage polling:
+  - Stop polling immediately if response status is 401/403.
+  - Stop polling and show a “Rate limited, please wait” message if status is 429.
+  - Add exponential backoff polling (2s → 4s → 8s, cap 10s).
+  - Ensure all polling promises are awaited/caught (no “Uncaught (in promise)”).
+
+D) Improve UI error messaging
+- Replace generic “Unauthorized/Bad Request” blocks with friendly messages:
+  - 401: “Session expired. Please sign in again.”
+  - 429: “Too many requests. Waiting a moment…”
+- Keep existing UI layout; just improve state handling.
+
+Acceptance criteria:
+- When logged in, POST /upload-sessions succeeds (no 401).
+- If token is missing/expired, user is redirected to Sign In and polling stops.
+- No repeated 429 spam; polling backs off and handles errors cleanly.
+- Running analysis works end-to-end after login.
+
+Deliverables:
+- Updated authService to normalize tokens.
+- Updated apiFetch to attach Authorization header correctly.
+- Updated ChatAnalysisPage polling to stop/backoff on 401/429 and catch errors.

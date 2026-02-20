@@ -1,0 +1,288 @@
+Implement Full Demo AI Dashboard + Love Guru using puter.js (structured JSON outputs, charts, events, personality, word clouds) — UI-first, demo-mode only, best possible quality
+
+Context
+- We are in “Demo AI Mode” (no OpenAI cost) using puter.js in-browser.
+- Input: user uploads export file OR pastes chat text (independent from app selection).
+- Output: dashboard should include the major analyses shown in Surya’s screenshots:
+  1) Engagement Analysis (message counts per person, weekly heatmap, engagement over time)
+  2) Compatibility Analysis (score + narrative + strengths/challenges/growth)
+  3) Major Events (table + event details with related messages)
+  4) Detailed Sentiment Analysis (timeline chart with notable markers)
+  5) Personality Analysis (per participant: MBTI-like archetype + strengths/weaknesses + narrative)
+  6) Word Clouds (top words per person)
+- Love Guru replies must be based on the user’s uploaded/pasted conversation + generated insights.
+- Personas:
+  - Coach: professional mentor/counsellor / big-brother style, structured advice, no slang
+  - Bestie: GenZ best friend voice, code-switching if user code-switches
+- Multilingual: if conversation has mixed languages, analysis and Love Guru must adapt accordingly.
+
+Hard Rules
+- Demo AI must be explicitly enabled; never silent fallback.
+- Show “Demo Mode – experimental” badge when using puter.js.
+- Require user consent BEFORE any AI run (because this can send text to an external provider).
+- If AI fails, show Retry / Use Mock instead. Do not silently switch.
+
+========================================================
+Ticket A — puter.js Loader + Demo AI Orchestrator (core)
+========================================================
+1) Add `src/utils/loadPuter.js`
+   - dynamic script loader: https://js.puter.com/v2/
+   - resolves only when window.puter is available
+   - friendly error if blocked/unavailable
+
+2) Add `src/services/demoAiOrchestrator.js`
+   Export:
+   - `runDemoPipeline({ rawText, manualParticipants, manualDateRange, allowRawSend, personaPreference })`
+   - `sendLoveGuru({ analysisId, threadId, persona, userMessage })`
+
+3) Add localStorage keys:
+   - `tpai_demo_mode_enabled` boolean
+   - `tpai_demo_mode_consent` boolean
+   - `tpai_demo_analyses` array (store analyses + insights payload)
+   - `tpai_demo_threads` map (analysisId -> threads/messages)
+
+========================================================
+Ticket B — Consent + “Fullest” Mode Toggle (explicit)
+========================================================
+1) Add a consent modal that appears BEFORE the first Demo AI run:
+   - “Demo Mode uses a third-party AI provider in your browser.”
+   - Checkbox: “I understand and agree. I won’t paste highly sensitive data.”
+   - Buttons: Cancel / Continue
+
+2) Add a “Quality” toggle on the Run Analysis UI (Demo only):
+   - Default: “Privacy-first (recommended)” → sends summarized/abstracted data
+   - Optional: “Highest quality (sends full text)” → requires an extra confirm step
+   - Store choice session-only (do not persist by default)
+
+Note: Surya asked “use puter.js to its fullest”. This supports that while keeping explicit consent.
+
+========================================================
+Ticket C — Message Parsing + Local Metrics (deterministic)
+========================================================
+Create `src/utils/chatParseAndMetrics.js` with:
+1) `parseChat(rawText, manualParticipants)`:
+   - Best-effort parse into messages: { ts?, speaker, text }
+   - Support common patterns:
+     - [DD/MM/YYYY, HH:MM] Name: message (WhatsApp-ish)
+     - DD/MM/YYYY, HH:MM - Name: message
+     - Name: message (fallback)
+   - If speaker missing, assign “Unknown” buckets and prompt user to fill names (optional)
+   - Group chat: allow >2 speakers
+
+2) `computeMetrics(messages)` returning:
+   - participants: list with message counts
+   - engagementOverTime: weekly buckets per participant
+   - weeklyHeatmap: day-of-week x time-block (6 blocks like screenshot) total counts
+   - sentimentOverTimeBuckets: weekly sentiment placeholders (filled by AI later OR heuristic)
+   - topWordsPerParticipant: frequency list (filter stopwords; basic tokenization)
+   - conversationDurationDays (from timestamps if present; else manualDateRange preset)
+   - detectedLanguages heuristic (simple: character ranges + common word lists)
+   - “notableSpikesCandidates” (weeks with high volume or big sentiment change heuristic)
+
+No AI needed here → makes charts fast, consistent, and cheaper.
+
+========================================================
+Ticket D — AI Analysis Prompts (Structured JSON, retry-safe)
+========================================================
+We will call puter.ai.chat to generate ONLY the parts that require real intelligence:
+- compatibility score + narrative + strengths/challenges/growth
+- major events extraction + summaries
+- sentiment markers & storyline
+- personality/archetype analysis per participant
+- labels & “why” explanations
+
+1) Add `src/services/demoAiPrompts.js` which exports:
+   - `buildAnalysisPrompt({ parsedSummary, metricsSummary, allowRawSend, rawTextMaybe })`
+   - `buildLoveGuruPrompt({ persona, languageHints, analysisSummary, threadMessages, userMessage })`
+
+2) Implement JSON schema and validation
+   - Create `src/services/demoAiSchema.js` (use zod if already in repo; otherwise write a small validator)
+   - If response is not valid JSON:
+     - automatically do ONE “repair” call:
+       “Return ONLY valid JSON matching this schema. No prose.”
+   - If still invalid: show error UI with “Retry”.
+
+3) Required output JSON shape (single object)
+Return ONLY JSON:
+
+{
+  "analysisId": "string",
+  "participants": [{ "name": "string", "colorHint": "pink|blue|purple|teal", "messageCount": number }],
+  "compatibility": {
+    "score": number,            // 0-100
+    "label": "string",          // e.g., Strong / Mixed / Growing
+    "summary": "string",
+    "strengths": [{ "title": "string", "detail": "string" }],
+    "challenges": [{ "title": "string", "detail": "string" }],
+    "growth": [{ "title": "string", "detail": "string" }]
+  },
+  "sentiment": {
+    "timelineMarkers": [
+      { "dateApprox": "string", "label": "string", "kind": "up|down|shift|event" }
+    ],
+    "narrative": "string"
+  },
+  "majorEvents": [
+    {
+      "dateApprox": "string",
+      "event": "string",
+      "summary": "string",
+      "impact": {
+        "overview": "string",
+        "keyInteractions": "string",
+        "emotionalImpact": "string",
+        "relationshipImpact": "string"
+      },
+      "relatedMessageSelectors": [
+        { "participant": "string", "contains": "string" }
+      ]
+    }
+  ],
+  "personality": [
+    {
+      "participant": "string",
+      "archetypeCode": "string",        // e.g., ESFP-A (demo)
+      "dimensions": [
+        { "key": "E", "value": number }, { "key": "I", "value": number },
+        { "key": "N", "value": number }, { "key": "S", "value": number },
+        { "key": "T", "value": number }, { "key": "F", "value": number },
+        { "key": "J", "value": number }, { "key": "P", "value": number },
+        { "key": "A", "value": number }, { "key": "T", "value": number }
+      ],
+      "strengthTags": ["string"],
+      "weaknessTags": ["string"],
+      "narrative": "string"
+    }
+  ],
+  "copy": {
+    "welcome": "string",
+    "coachHint": "string",
+    "bestieHint": "string"
+  }
+}
+
+4) Prompt content strategy
+- Send AI:
+  - parsedSummary: participant names, example snippets (REDACTED), topics, metrics summary
+  - optionally raw text if allowRawSend = true
+- Ask AI to:
+  - infer the story + events
+  - generate compatibility + strengths/challenges/growth
+  - produce personality analysis per participant
+  - produce sentiment narrative + timeline markers
+  - produce relatedMessageSelectors (we will map these to messages locally)
+
+========================================================
+Ticket E — Mapping “Related Messages” WITHOUT exposing too much
+========================================================
+Screenshots show related messages in event detail. Implement safely:
+
+1) Add Event Details Drawer:
+   - shows Event Overview text + Related Messages list
+2) Default behavior:
+   - show related messages REDACTED (blur names/phones/emails) with “Tap to reveal”
+   - require a “Reveal related messages” toggle in the drawer (off by default)
+3) Implement selector matching:
+   - for each selector {participant, contains} find best-matching messages in parsed list
+   - return up to 8 messages
+   - if none found, show “No exact matches found (demo).”
+
+========================================================
+Ticket F — Dashboard UI to match screenshots (but in Third Person AI style)
+========================================================
+Implement sections (order matters):
+1) Header row:
+   - Conversation duration dropdown (no “Peak”)
+   - Welcome pill
+
+2) Engagement Analysis card:
+   - participant message count bars (pink vs blue)
+   - weekly activity heatmap (day x time block)
+   - engagement over time line chart (two lines)
+
+3) Compatibility Analysis card:
+   - score bar with label
+   - summary callout
+   - three cards: Strengths / Potential Challenges / Growth Opportunities
+
+4) Major Events section:
+   - table with date/event/summary
+   - clicking row opens Event Details Drawer (with related messages as per Ticket E)
+
+5) Detailed Sentiment Analysis card:
+   - sentiment chart (two lines or combined if only one)
+   - marker icons optional; keep tasteful (no emojis in UI)
+
+6) Personality Analysis per participant:
+   - archetype code large (ESFP-A style)
+   - dimension bars row (E/I, N/S, T/F, J/P, A/T)
+   - strengths tags + weaknesses tags
+   - narrative block
+
+7) Word Cloud section:
+   - two word clouds side-by-side (participant top words)
+   - implement as simple positioned text sized by frequency (no heavy libs)
+   - fallback: list chips if canvas render fails
+
+========================================================
+Ticket G — Love Guru: Persona + Multilingual behavior (prompt + UI)
+========================================================
+1) Persona selector must clearly affect replies:
+   - Coach:
+     - Professional, calm, structured:
+       1) What I’m noticing
+       2) Why it may be happening
+       3) 3 practical next steps
+       4) One gentle question
+     - No slang, no roasting
+   - Bestie:
+     - GenZ best friend vibe
+     - Mirrors user tone and language mixing
+     - Short punchy paragraphs
+     - Caring but direct
+     - Avoid hate/harassment; keep it friendly
+
+2) Multilingual:
+   - Detect language hints from parsed metrics + user messages
+   - Add system instruction:
+     - “Reply in the user’s dominant language. If they code-switch (e.g., Hinglish), mirror it naturally.”
+   - Coach prioritizes clarity (less code-switching).
+   - Bestie mirrors code-switching more.
+
+3) Love Guru context:
+   - Always include:
+     - compatibility summary
+     - top strengths/challenges/growth
+     - notable events list (titles only)
+     - personality archetype highlights
+   - Never quote raw chat unless user explicitly asks AND they toggled “reveal” (keep safe)
+
+========================================================
+Ticket H — Performance + Reliability (important)
+========================================================
+1) Chunking:
+   - If allowRawSend=true and chat is huge:
+     - summarize locally into chunks (e.g., 8–12 chunks)
+     - call AI to summarize each chunk (short)
+     - then call AI once to produce the final JSON analysis using those summaries
+2) Limit AI calls:
+   - Target: 2–5 calls per analysis depending on size
+3) Loading UI:
+   - show step progress: “Reading patterns → Mapping emotions → Identifying dynamics → Generating insights → Preparing dashboard”
+4) Error states:
+   - If puter unreachable: show “Demo AI unavailable” with Retry / Use Mock
+   - If schema invalid: show “We couldn’t format the results” with Retry
+
+========================================================
+Acceptance Criteria
+========================================================
+- Dashboard contains all major analysis areas shown in Surya’s screenshots.
+- Uses puter.js to generate structured JSON that fills compatibility, major events, sentiment narrative, and personality.
+- Engagement heatmap, engagement over time, and word clouds render reliably from local computed metrics.
+- Love Guru replies clearly differ between Coach and Bestie personas and adapt to multilingual/code-switching.
+- Demo Mode is explicit, consent-based, and never silently enabled.
+- Runs in `npm run dev` with no backend/OpenAI cost required.
+
+Deliverables
+- Summary of files added/changed
+- Clear notes on how to test (paste sample chat → run demo analysis → open dashboard → open Love Guru → ask questions)

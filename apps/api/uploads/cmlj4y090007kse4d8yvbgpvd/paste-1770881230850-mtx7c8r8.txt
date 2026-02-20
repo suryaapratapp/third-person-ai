@@ -1,0 +1,87 @@
+[22/01/2026, 16:45:49] Mehak Bhardwaj: ‎Messages and calls are end-to-end encrypted. Only people in this chat can read, listen to, or share them.
+[22/01/2026, 16:45:49] Mehak Bhardwaj: ‎Mehak Bhardwaj is a contact.
+[22/01/2026, 15:52:54] Mehak Bhardwaj: Hello sir
+[22/01/2026, 15:53:16] Mehak Bhardwaj: mehak@gmail.com - this is my email id
+[22/01/2026, 16:59:37] Surya: Hi, offer letter kabtk chahiye?
+[22/01/2026, 17:02:29] Mehak Bhardwaj: 28 tak
+[22/01/2026, 17:02:40] Mehak Bhardwaj: Jan mai submit Krna hai
+[22/01/2026, 17:06:15] Surya: Third person ka hi dedu?
+[22/01/2026, 17:07:13] Surya: Par linkedin account nahi h abhi, agar uni check kregi to maybe suspicious ho!
+[22/01/2026, 17:07:22] Surya: Teesick.com
+[22/01/2026, 17:07:31] Surya: Iska bhi de skta hu!
+[22/01/2026, 17:07:45] Mehak Bhardwaj: Jo apko shi lage
+[22/01/2026, 17:08:16] Mehak Bhardwaj: Hn agar verify krne lage toh ho sakta hai
+[22/01/2026, 17:09:03] Mehak Bhardwaj: Ye wala bhi shi hai
+[22/01/2026, 17:09:18] Surya: https://www.linkedin.com/company/
+[22/01/2026, 17:10:56] Mehak Bhardwaj: Ye theek hai verification mai bhi problem nhi aegi
+[22/01/2026, 17:48:26] Mehak Bhardwaj: 5/6 months ki duration  mention kr dena offer letter mai, compulsory rkhi hai college ne
+[23/01/2026, 22:53:33] Mehak Bhardwaj: https://excalidraw.com
+[23/01/2026, 23:07:33] Mehak Bhardwaj: Isme maine apne ideas daale hai sir thode thethirdperson se related ,kya unique kar sakte hai  isme aur kaise current idea ko subconscious mind se relate kr sakte hai
+[25/01/2026, 06:13:41] Surya: Great stuff - I’ll let you know my thoughts on it
+[25/01/2026, 11:11:54] Surya: Sorry, mehak. I’m travelling from last couple of days - will sort out your offer letter tomorrow. Hope everything’s good.
+[25/01/2026, 12:08:43] Mehak Bhardwaj: No problem sir , you don't have to be sorry I can understand you must have had a busy schedule - I can submit the letter between Monday to Wednesday
+[26/01/2026, 11:09:36] Surya: Please check your email and confirm if you’re happy with it.
+[26/01/2026, 11:44:31] Mehak Bhardwaj: Yes sir, I'm happy with it 
+Thank you ‎<This message was edited>
+‎[26/01/2026, 11:48:36] Surya: Offer of Internship • ‎3 pages ‎document omitted
+[26/01/2026, 11:50:00] Mehak Bhardwaj: Thank you sir
+[29/01/2026, 16:24:48] Surya: Hi Mehak - are you around for a gmeet call tomorrow at 3?
+[29/01/2026, 16:25:17] Mehak Bhardwaj: Sure sir
+[29/01/2026, 16:25:36] Surya: great - i’ll send you an invite shortly
+[29/01/2026, 16:26:26] Mehak Bhardwaj: I will try to make a version 1 by tomorrow
+[29/01/2026, 16:26:55] Surya: amazing, looking forward to it
+[29/01/2026, 16:28:32] Mehak Bhardwaj: Me too🙏
+[30/01/2026, 15:02:42] Mehak Bhardwaj: .
+[31/01/2026, 00:08:52] Mehak Bhardwaj: ‎This message was deleted.
+[31/01/2026, 01:07:39] Mehak Bhardwaj: Hello sir, I am confused about one thing which framework should we choose for the backend?
+Even though I am currently most comfortable with Spring Boot, from what I have read, it is not always a good choice for small- to medium-sized projects.
+Express is a good choice for fast startup, concurrency, and real-time I/O tasks, while FastApi is often preferred for AI/ML-heavy workloads.
+So, should we stick to either Python or Node, or can we use a hybrid approach using Python for AI-related tasks and Node for handling the rest?
+
+Or if there is any better framework?
+[31/01/2026, 16:49:08] Surya: Hi mehak, you're thinking in the right direction. We should follow the hybrid approach - node for core backend logic, and fastapi for AI/LLM
+[31/01/2026, 16:49:37] Surya: https://www.mosaicchats.com/ch
+[31/01/2026, 16:54:55] Surya: analyse mosaic
+[31/01/2026, 16:55:48] Surya: also, UI/UX as discussed on call - keep glassmorphism dark-mode theme in mind, it appeals GenZ aesthetics!
+[31/01/2026, 16:57:27] Mehak Bhardwaj: Ok sir, I'll be going with dark shades then
+[02/02/2026, 08:20:38] Surya: Good morning Mehak, 
+Please let me know if you face any issues or have any questions!
+[02/02/2026, 14:50:31] Mehak Bhardwaj: Good Afternoon sir , I have been working on frontend from past 2 days , I will try to finish it up by today or tomorrow to get a review from you ‎<This message was edited>
+[02/02/2026, 15:09:06] Surya: Great work - thank you!
+[03/02/2026, 21:45:36] Mehak Bhardwaj: https://thirdperson-murex.vercel.app/
+[03/02/2026, 21:52:11] Mehak Bhardwaj: Hello Sir, i did some experiments on frontend and created this till now , you can review it in your pc , since i have'nt added mobile responsiveness yet. I'm looking forward to know that what changes i have to make in it.
+[03/02/2026, 21:56:49] Mehak Bhardwaj: I am bit confused about what details i have to add on landing page since that will decide design of our backend also
+[06/02/2026, 12:43:03] Surya: I’ll update you on this!
+[08/02/2026, 16:42:38] Surya: Hi Mehak,
+Please research current LLMs, compare them and perform a SWOT analysis for each including pricing (token/usage costs). Identify the best value and fit for our project.
+Also, review recent research on conversation analysis, sentiment analysis and personality inference from text.
+
+Also, please share your bank/UPI details. Thank you!
+[08/02/2026, 16:49:05] Surya: This looks really good. 
+
+I’ve updated thethirdperson.ai similar to mosaicchats - I’ll update the keywords later. 
+
+For this week, let’s focus on documenting the complete application architecture and all required components.
+[08/02/2026, 18:55:16] Mehak Bhardwaj: Ok sir
+[08/02/2026, 18:56:57] Mehak Bhardwaj: I'm glad that you liked it
+[08/02/2026, 19:01:41] Mehak Bhardwaj: I use this number for UPI 8595568082
+[09/02/2026, 00:10:00] Mehak Bhardwaj: https://thirdperson-murex.vercel.app/. -- sir i have modified the frontend and added MCQ based questionnaire to some sections
+[09/02/2026, 00:11:57] Mehak Bhardwaj: For now you'll get the best view on pc since I haven't made it responsive for mobiles
+[09/02/2026, 00:20:42] Mehak Bhardwaj: Do let me know if the previous one was better or if both designs are not meeting your expectations 
+
+Since I am not very good with the frontend so if it needs more enhancement in any aspect I'll keep working on it side by side while doing the specific tasks you'll assign me
+[09/02/2026, 14:42:59] Surya: Hi Mehak, we’ll talk about the product architecture tomorrow. Hold working on the product development part!
+[09/02/2026, 15:45:11] Surya: Great addition! We’ll implement these features
+[09/02/2026, 16:42:55] Surya: Can you send me these by Wednesday? Let me know if you’re occupied with something else!
+[09/02/2026, 16:46:07] Mehak Bhardwaj: I will send you some work i did by tonight only
+[09/02/2026, 16:46:56] Surya: great, share the google doc type
+[09/02/2026, 16:47:52] Mehak Bhardwaj: I just have to invest time on SWOT analysis, LLM analysis part will be probably done by tonight
+[09/02/2026, 16:49:01] Surya: LLMs comparison, pricing?
+[09/02/2026, 17:02:15] Mehak Bhardwaj: I have figured out the best LLM that project should use now I just have to calculate which one has better cost to performance ratio
+[10/02/2026, 01:18:02] Mehak Bhardwaj: https://docs.google.com/document/d/1rEIQ98tIb340wIDlUsvyRptjtCg7YfrBESHx6XGc92w/edit?usp=sharing
+[10/02/2026, 01:20:04] Mehak Bhardwaj: Sir should i mail documents to this address from now on surya.pratap@revolution-zero.com
+[10/02/2026, 01:21:27] Mehak Bhardwaj: I will try to complete the SWOT analysis by tomorrow
+[10/02/2026, 11:45:08] Surya: please provide access to the doc, thank you!
+[10/02/2026, 11:45:35] Surya: you can either send here only or email at suryapratap333@gmail.com
+[10/02/2026, 11:46:02] Surya: wonderful, all the best!
+[10/02/2026, 11:51:19] Mehak Bhardwaj: I have provided the access,sir.

@@ -1,3 +1,107 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  font-family: 'Plus Jakarta Sans', 'Manrope', 'Avenir Next', 'Segoe UI', sans-serif;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  color: #f8fafc;
+  background: #0f172a;
+}
+
+::selection {
+  background: rgba(244, 114, 182, 0.35);
+}
+
+@keyframes float-soft {
+  0%,
+  100% {
+    transform: translateY(0px) translateX(0px);
+  }
+  50% {
+    transform: translateY(-14px) translateX(6px);
+  }
+}
+
+.animate-float-slow {
+  animation: float-soft 9s ease-in-out infinite;
+}
+
+.animate-float-delayed {
+  animation: float-soft 11s ease-in-out infinite;
+  animation-delay: 1.2s;
+}
+
+@keyframes guru-glow {
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: scale(0.96);
+  }
+  50% {
+    opacity: 0.95;
+    transform: scale(1.08);
+  }
+}
+
+@keyframes guru-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes guru-pulse {
+  0%,
+  100% {
+    transform: scale(0.95);
+    opacity: 0.86;
+  }
+  50% {
+    transform: scale(1.07);
+    opacity: 1;
+  }
+}
+
+@keyframes guru-orbit {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-guru-glow {
+  animation: guru-glow 5.8s ease-in-out infinite;
+}
+
+.animate-guru-glow-delayed {
+  animation: guru-glow 6.8s ease-in-out infinite;
+  animation-delay: 0.9s;
+}
+
+.animate-guru-bob {
+  animation: guru-bob 4.8s ease-in-out infinite;
+}
+
+.animate-guru-pulse {
+  animation: guru-pulse 3.4s ease-in-out infinite;
+}
+
+.animate-guru-orbit {
+  animation: guru-orbit 17s linear infinite;
+  transform-origin: 50% 50%;
+}

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0b1220"/>
+      <stop offset="100%" stop-color="#1f2937"/>
+    </linearGradient>
+  </defs>
+  <rect width="960" height="540" rx="24" fill="url(#bg)"/>
+  <rect x="38" y="38" width="884" height="464" rx="20" fill="#0f172a" stroke="#334155" stroke-width="2"/>
+  <rect x="74" y="86" width="810" height="48" rx="12" fill="#1e293b"/>
+  <rect x="74" y="164" width="360" height="26" rx="8" fill="#475569"/>
+  <rect x="74" y="206" width="510" height="18" rx="7" fill="#334155"/>
+  <rect x="74" y="236" width="460" height="18" rx="7" fill="#334155"/>
+  <rect x="74" y="266" width="420" height="18" rx="7" fill="#334155"/>
+  <rect x="74" y="332" width="240" height="88" rx="14" fill="#1e293b" stroke="#475569"/>
+  <rect x="334" y="332" width="240" height="88" rx="14" fill="#1e293b" stroke="#475569"/>
+  <rect x="594" y="332" width="240" height="88" rx="14" fill="#1e293b" stroke="#475569"/>
+  <text x="74" y="118" font-family="Arial, sans-serif" font-size="20" fill="#cbd5e1">TELEGRAM Export Guide Placeholder</text>
+  <text x="74" y="188" font-family="Arial, sans-serif" font-size="26" fill="#f8fafc">Step 2 Placeholder Screenshot</text>
+  <text x="74" y="462" font-family="Arial, sans-serif" font-size="16" fill="#93c5fd">Replace with real screenshot when available</text>
+</svg>
