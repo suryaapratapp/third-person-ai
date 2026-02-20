@@ -19,7 +19,9 @@ export async function buildServer() {
   })
 
   await app.register(cors, {
-    origin: ['http://localhost:5173'],
+    origin: ['https://www.thethirdperson.ai',
+    'https://thethirdperson.ai',
+    'http://localhost:5173',],
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
