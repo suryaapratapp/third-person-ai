@@ -1,3 +1,5 @@
+import { AI_MODE } from '../config/runtime'
+
 const DEMO_MODE_ENABLED_KEY = 'tpai_demo_mode_enabled'
 const DEMO_MODE_CONSENT_KEY = 'tpai_demo_mode_consent'
 const DEMO_MODE_FULL_TEXT_SESSION_KEY = 'tpai_demo_mode_full_text'
@@ -7,7 +9,7 @@ function toBoolean(value) {
 }
 
 export function isEnvDemoMode() {
-  return String(import.meta.env.VITE_AI_MODE || '').toLowerCase() === 'demo'
+  return AI_MODE === 'demo'
 }
 
 export function isDemoModeEnabled() {

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import AuthCard from '../../components/auth/AuthCard'
 import { useAuth } from '../../context/AuthContext'
+import { AI_MODE } from '../../config/runtime'
 
 function StatusPill({ verified }) {
   return (
@@ -36,7 +37,7 @@ export default function VerifyDetailsPage() {
   const [cooldown, setCooldown] = useState({ email: 0, phone: 0 })
   const [demoOtp, setDemoOtp] = useState(location.state?.demoOtp || null)
 
-  const isDemoUi = useMemo(() => import.meta.env.VITE_AI_MODE === 'demo' || Boolean(demoOtp), [demoOtp])
+  const isDemoUi = useMemo(() => AI_MODE === 'demo' || Boolean(demoOtp), [demoOtp])
 
   useEffect(() => {
     if (!email) {

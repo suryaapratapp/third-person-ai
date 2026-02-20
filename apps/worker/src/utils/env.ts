@@ -30,6 +30,6 @@ export const env = {
   openAiMaxRetries: Number.parseInt(process.env.OPENAI_MAX_RETRIES ?? '3', 10),
   databaseUrl:
     process.env.DATABASE_URL ??
-    'postgresql://postgres:postgres@localhost:5432/third_person_ai?schema=public',
+    'postgresql://postgres:postgres@127.0.0.1:5432/third_person_ai?schema=public',
   uploadDir: process.env.UPLOAD_DIR ?? 'uploads',
 }

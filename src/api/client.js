@@ -1,5 +1,4 @@
-const API_BASE_URL =
-  import.meta.env.VITE_API_URL?.replace(/\/$/, '') || 'http://localhost:3001'
+import { API_BASE_URL, isApiConfigured } from '../config/runtime'
 
 async function parseBody(response) {
   const text = await response.text()
@@ -25,6 +24,10 @@ function toApiError(status, payload, fallbackMessage) {
   }
 }
 
+function getMissingApiConfigError() {
+  return toApiError(0, null, 'API is not configured (VITE_API_URL missing).')
+}
+
 async function getAuthService() {
   return import('../services/authService')
 }
@@ -37,6 +40,9 @@ function redirectToSignIn() {
 }
 
 async function requestRefreshToken(refreshToken) {
+  if (!isApiConfigured()) {
+    return null
+  }
   const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
     method: 'POST',
     headers: {
@@ -54,6 +60,10 @@ async function requestRefreshToken(refreshToken) {
 }
 
 async function withAuthRetry(path, options, retryOn401) {
+  if (!isApiConfigured()) {
+    throw getMissingApiConfigError()
+  }
+
   const authService = await getAuthService()
   const session = authService.getSession()
   const headers = new Headers(options.headers || {})
@@ -101,6 +111,10 @@ async function withAuthRetry(path, options, retryOn401) {
 }
 
 export async function apiFetch(path, options = {}) {
+  if (!isApiConfigured()) {
+    throw getMissingApiConfigError()
+  }
+
   const response = await withAuthRetry(path, options, true)
   const payload = await parseBody(response)
 

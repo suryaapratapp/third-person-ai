@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { getApiBaseUrl } from '../api/client'
+import { isApiConfigured } from '../config/runtime'
 
 export default function ApiStatusBanner() {
   const [status, setStatus] = useState('checking')
@@ -8,6 +9,11 @@ export default function ApiStatusBanner() {
     let cancelled = false
 
     async function check() {
+      if (!isApiConfigured()) {
+        if (!cancelled) setStatus('disconnected')
+        return
+      }
+
       try {
         const response = await fetch(`${getApiBaseUrl()}/health`)
         if (cancelled) return
@@ -35,7 +41,7 @@ export default function ApiStatusBanner() {
 
   return (
     <div className={`mx-auto mt-2 max-w-6xl rounded-lg border px-3 py-2 text-xs ${toneClass}`}>
-      API: {getApiBaseUrl()} | {status}
+      API: {getApiBaseUrl() || '(missing VITE_API_URL)'} | {status}
     </div>
   )
 }

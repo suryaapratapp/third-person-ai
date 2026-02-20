@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "node scripts/scan-localhost.mjs && vite build && node scripts/verify-build.mjs",
+    "prod:check": "npm run build && npm --prefix apps/api run build",
     "lint": "eslint .",
     "preview": "vite preview"
   },

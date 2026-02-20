@@ -21,10 +21,26 @@ function resolveAnalysisMode(rawMode: string | undefined, apiKey: string): 'mock
   return 'mock'
 }
 
+function toCsvList(value: string | undefined, fallback: string[]): string[] {
+  if (!value) return fallback
+  return value
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean)
+}
+
+const nodeEnv = process.env.NODE_ENV ?? 'development'
+const defaultHost = nodeEnv === 'production' ? '0.0.0.0' : '127.0.0.1'
+
 export const env = {
-  nodeEnv: process.env.NODE_ENV ?? 'development',
-  port: toPort(process.env.PORT, 3001),
-  host: process.env.HOST ?? '0.0.0.0',
+  nodeEnv,
+  port: toPort(process.env.PORT, 3002),
+  host: process.env.HOST ?? defaultHost,
+  corsOrigins: toCsvList(process.env.CORS_ORIGIN, [
+    'http://localhost:5173',
+    'https://thethirdperson.ai',
+    'https://www.thethirdperson.ai',
+  ]),
   logLevel: process.env.LOG_LEVEL ?? 'info',
   redisUrl: process.env.REDIS_URL ?? 'redis://127.0.0.1:6379',
   parseExportQueueName: process.env.PARSE_EXPORT_QUEUE_NAME ?? 'parse_export',
@@ -39,8 +55,8 @@ export const env = {
   quotaDailyDefault: toNumber(process.env.QUOTA_DAILY_DEFAULT, 1000),
   quotaDailyAnalyze: toNumber(process.env.QUOTA_DAILY_ANALYZE, 100),
   quotaDailyLoveGuruMessages: toNumber(process.env.QUOTA_DAILY_LOVE_GURU_MESSAGES, 300),
-  jwtAccessSecret: process.env.JWT_ACCESS_SECRET ?? 'dev-access-secret',
-  jwtRefreshSecret: process.env.JWT_REFRESH_SECRET ?? 'dev-refresh-secret',
+  jwtAccessSecret: process.env.JWT_ACCESS_SECRET ?? process.env.JWT_SECRET ?? 'dev-access-secret',
+  jwtRefreshSecret: process.env.JWT_REFRESH_SECRET ?? process.env.JWT_SECRET ?? 'dev-refresh-secret',
   accessTokenTtl: process.env.JWT_ACCESS_TTL ?? '15m',
   refreshTokenTtl: process.env.JWT_REFRESH_TTL ?? '7d',
   uploadDir: process.env.UPLOAD_DIR ?? 'uploads',

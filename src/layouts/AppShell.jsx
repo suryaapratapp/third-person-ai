@@ -2,6 +2,7 @@ import { Outlet } from 'react-router-dom'
 import NavBar from '../components/NavBar'
 import ParticleBackground from '../components/ParticleBackground'
 import ApiStatusBanner from '../components/ApiStatusBanner'
+import ApiConfigBanner from '../components/ApiConfigBanner'
 
 export default function AppShell() {
   return (
@@ -13,6 +14,7 @@ export default function AppShell() {
 
       <div className="relative z-10">
         <NavBar />
+        <ApiConfigBanner />
         {import.meta.env.DEV ? <ApiStatusBanner /> : null}
         <Outlet />
         <footer className="mx-auto mt-14 flex max-w-6xl items-center justify-center px-4 pb-8 text-xs text-slate-100/75 sm:px-6 lg:px-8">

@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify'
-import { getHealth } from '../controllers/healthController'
-import { healthResponseSchema } from '../schemas/healthSchema'
+import { getHealth, getReady } from '../controllers/healthController'
+import { healthResponseSchema, readyResponseSchema } from '../schemas/healthSchema'
 
 export async function healthRoutes(app: FastifyInstance) {
   app.get('/health', {
@@ -10,5 +10,15 @@ export async function healthRoutes(app: FastifyInstance) {
       },
     },
     handler: getHealth,
+  })
+
+  app.get('/ready', {
+    schema: {
+      response: {
+        200: readyResponseSchema,
+        503: readyResponseSchema,
+      },
+    },
+    handler: getReady,
   })
 }

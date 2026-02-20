@@ -1,16 +1,85 @@
-# React + Vite
+# Third Person AI Monorepo
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Frontend (Vite + React + Tailwind) lives at repo root.
+Backend API (Fastify + Prisma) lives at `apps/api`.
 
-Currently, two official plugins are available:
+## Local Development
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### Frontend
 
-## React Compiler
+```bash
+npm install
+npm run dev
+```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### API
 
-## Expanding the ESLint configuration
+```bash
+npm --prefix apps/api install
+npm --prefix apps/api run setup
+npm --prefix apps/api run dev
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Production Deploy
+
+### Frontend on Vercel
+
+- Framework preset: **Vite**
+- Root directory: repository root
+- Build command: `npm run build`
+- Output directory: `dist`
+
+Environment variables (Vercel Project Settings):
+
+- `VITE_API_URL` = your deployed API URL (required)
+- `VITE_AI_MODE` = `demo` (default) or `live`
+
+Important:
+
+- After changing env vars, **redeploy**.
+- SPA routes are handled by `vercel.json` rewrites.
+
+### API deploy
+
+Required environment variables:
+
+- `DATABASE_URL`
+- `JWT_SECRET` (or both `JWT_ACCESS_SECRET` and `JWT_REFRESH_SECRET`)
+- `HOST` (recommended: `0.0.0.0`)
+- `PORT` (provided by platform when applicable)
+- `CORS_ORIGIN` (comma-separated allowlist of frontend domains)
+
+Build/start commands:
+
+- Build: `npm --prefix apps/api run build`
+- Start: `npm --prefix apps/api run start`
+
+Prisma production steps:
+
+- `npm --prefix apps/api run db:generate`
+- `npm --prefix apps/api run db:migrate:deploy`
+
+Health checks:
+
+- `/health` basic liveness
+- `/ready` readiness (includes DB check)
+
+## Production Safety Checks
+
+Run from repo root:
+
+```bash
+npm run prod:check
+```
+
+This runs:
+
+1. localhost leak scan (`scripts/scan-localhost.mjs`)
+2. frontend build
+3. frontend asset verification (`scripts/verify-build.mjs`)
+4. API TypeScript build
+
+## Environment Templates
+
+- Frontend: `.env.example`
+- API: `apps/api/.env.example`

@@ -19,12 +19,19 @@ export async function buildServer() {
   })
 
   await app.register(cors, {
-    origin: ['https://www.thethirdperson.ai',
-    'https://thethirdperson.ai',
-    'http://localhost:5173',],
+    origin: (origin, callback) => {
+      if (!origin) {
+        callback(null, true)
+        return
+      }
+
+      const allowed = env.corsOrigins.includes(origin)
+      callback(null, allowed)
+    },
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
+    optionsSuccessStatus: 204,
   })
 
   await app.register(multipart, {
