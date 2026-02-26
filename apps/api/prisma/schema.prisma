@@ -7,46 +7,25 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum PersonEntityType {
-  Friend
-  Partner
-  Crush
-  Family
-  Cousin
-  Sibling
-  Colleague
-  Other
-}
-
-enum VerificationChannel {
-  EMAIL
-  PHONE
-}
-
-enum VerificationPurpose {
-  REGISTER
-  PASSWORD_RESET
-}
-
 model User {
-  id               String               @id @default(cuid())
-  email            String               @unique
-  firstName        String?
-  lastName         String?
-  phone            String?
-  dob              DateTime?
-  phoneVerified    Boolean              @default(false)
-  emailVerified    Boolean              @default(false)
-  hashedPassword   String?
-  refreshTokenHash String?
-  createdAt        DateTime             @default(now())
-  uploadSessions   UploadSession[]
-  personEntities   PersonEntity[]
-  profiles         PersonalityProfile[]
-  requestedMatches Match[]              @relation("MatchRequester")
-  targetMatches    Match[]              @relation("MatchTarget")
-  aiUsageLogs      AIUsageLog[]
-  apiUsageCounters ApiUsageCounter[]
+  id                String               @id @default(cuid())
+  email             String               @unique
+  hashedPassword    String?
+  createdAt         DateTime             @default(now())
+  refreshTokenHash  String?
+  firstName         String?
+  lastName          String?
+  phone             String?
+  dob               DateTime?
+  phoneVerified     Boolean              @default(false)
+  emailVerified     Boolean              @default(false)
+  aiUsageLogs       AIUsageLog[]
+  apiUsageCounters  ApiUsageCounter[]
+  requestedMatches  Match[]              @relation("MatchRequester")
+  targetMatches     Match[]              @relation("MatchTarget")
+  personEntities    PersonEntity[]
+  profiles          PersonalityProfile[]
+  uploadSessions    UploadSession[]
   verificationCodes VerificationCode[]
 
   @@map("users")
@@ -74,10 +53,10 @@ model UploadSession {
   sourceApp     String
   status        String         @default("READY")
   createdAt     DateTime       @default(now())
+  analysisRuns  AnalysisRun[]
+  messages      Message[]
   user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   uploadedFiles UploadedFile[]
-  messages      Message[]
-  analysisRuns  AnalysisRun[]
 
   @@index([userId])
   @@index([sourceApp])
@@ -113,14 +92,14 @@ model Message {
 }
 
 model AnalysisRun {
-  id              String         @id @default(cuid())
+  id              String           @id @default(cuid())
   uploadSessionId String
-  personEntityId  String?
-  status          String         @default("READY")
+  status          String           @default("READY")
   model           String?
-  createdAt       DateTime       @default(now())
-  uploadSession   UploadSession  @relation(fields: [uploadSessionId], references: [id], onDelete: Cascade)
-  personEntity    PersonEntity?  @relation(fields: [personEntityId], references: [id], onDelete: SetNull)
+  createdAt       DateTime         @default(now())
+  personEntityId  String?
+  personEntity    PersonEntity?    @relation(fields: [personEntityId], references: [id])
+  uploadSession   UploadSession    @relation(fields: [uploadSessionId], references: [id], onDelete: Cascade)
   insights        Insight[]
   loveGuruThreads LoveGuruThread[]
 
@@ -148,8 +127,8 @@ model LoveGuruThread {
   persona       String
   tone          String
   createdAt     DateTime          @default(now())
-  analysisRun   AnalysisRun       @relation(fields: [analysisRunId], references: [id], onDelete: Cascade)
   messages      LoveGuruMessage[]
+  analysisRun   AnalysisRun       @relation(fields: [analysisRunId], references: [id], onDelete: Cascade)
 
   @@index([analysisRunId])
   @@map("love_guru_threads")
@@ -169,14 +148,14 @@ model LoveGuruMessage {
 }
 
 model PersonEntity {
-  id        String               @id @default(cuid())
-  userId    String
-  name      String
-  type      PersonEntityType
-  createdAt DateTime             @default(now())
-  user      User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
-  profiles  PersonalityProfile[]
+  id           String               @id @default(cuid())
+  userId       String
+  name         String
+  type         PersonEntityType
+  createdAt    DateTime             @default(now())
   analysisRuns AnalysisRun[]
+  user         User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  profiles     PersonalityProfile[]
 
   @@index([userId])
   @@index([type])
@@ -184,13 +163,13 @@ model PersonEntity {
 }
 
 model PersonalityProfile {
-  id             String      @id @default(cuid())
+  id             String       @id @default(cuid())
   userId         String
   personEntityId String
   profileJSON    Json
-  createdAt      DateTime    @default(now())
-  user           User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
   personEntity   PersonEntity @relation(fields: [personEntityId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([personEntityId])
@@ -227,7 +206,7 @@ model AIUsageLog {
   estimatedCostUsd Decimal? @db.Decimal(10, 6)
   metadata         Json?
   createdAt        DateTime @default(now())
-  user             User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  user             User?    @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([endpoint])
@@ -248,4 +227,25 @@ model ApiUsageCounter {
   @@unique([userId, endpoint, day])
   @@index([day])
   @@map("api_usage_counters")
+}
+
+enum PersonEntityType {
+  Friend
+  Partner
+  Crush
+  Family
+  Cousin
+  Sibling
+  Colleague
+  Other
+}
+
+enum VerificationChannel {
+  EMAIL
+  PHONE
+}
+
+enum VerificationPurpose {
+  REGISTER
+  PASSWORD_RESET
 }
