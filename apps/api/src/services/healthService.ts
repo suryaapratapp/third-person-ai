@@ -5,6 +5,9 @@ export function getHealthStatus() {
   return {
     status: 'ok',
     time: new Date().toISOString(),
+    commit: env.commitSha,
+    env: env.nodeEnv,
+    db: 'unknown',
     analysisMode: env.analysisMode,
   }
 }

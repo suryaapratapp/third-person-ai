@@ -5,6 +5,7 @@ import { Link, NavLink, useNavigate } from 'react-router-dom'
 import DemoModeInfoModal from './DemoModeInfoModal'
 import { useAuth } from '../context/AuthContext'
 import { useDemoMode } from '../context/DemoModeContext'
+import { isClientAdminEmail } from '../config/runtime'
 
 const links = [
   { label: 'Home', to: '/' },
@@ -26,6 +27,7 @@ export default function NavBar() {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
   const [isDemoInfoOpen, setIsDemoInfoOpen] = useState(false)
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 })
+  const canSeeAdmin = isClientAdminEmail(user?.email)
   const userMenuRef = useRef(null)
   const userMenuButtonRef = useRef(null)
 
@@ -241,6 +243,16 @@ export default function NavBar() {
               >
                 Profile
               </Link>
+              {canSeeAdmin ? (
+                <Link
+                  role="menuitem"
+                  to="/admin"
+                  onClick={() => setIsUserMenuOpen(false)}
+                  className="block rounded-lg px-3 py-2 text-xs font-medium text-slate-100/90 transition hover:bg-white/10"
+                >
+                  Admin
+                </Link>
+              ) : null}
               <Link
                 role="menuitem"
                 to="/change-password"

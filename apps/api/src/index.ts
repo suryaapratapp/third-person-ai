@@ -4,6 +4,7 @@ import multipart from '@fastify/multipart'
 import swagger from '@fastify/swagger'
 import swaggerUi from '@fastify/swagger-ui'
 import { authRoutes } from './routes/authRoutes'
+import { adminRoutes } from './routes/adminRoutes'
 import { healthRoutes } from './routes/healthRoutes'
 import { loveGuruRoutes } from './routes/loveGuruRoutes'
 import { matchRoutes } from './routes/matchRoutes'
@@ -65,8 +66,45 @@ export async function buildServer() {
     routePrefix: '/docs',
   })
 
+  app.addHook('onRequest', async (request, reply) => {
+    reply.header('x-request-id', request.id)
+  })
+
+  app.setErrorHandler((error, request, reply) => {
+    request.log.error(
+      {
+        err: error,
+        requestId: request.id,
+        method: request.method,
+        url: request.url,
+      },
+      'Unhandled request error',
+    )
+
+    if (reply.sent) return
+
+    const statusCode =
+      typeof (error as { statusCode?: number }).statusCode === 'number'
+        ? (error as { statusCode: number }).statusCode
+        : 500
+
+    if (statusCode >= 500) {
+      reply.status(500).send({
+        error: 'Internal server error',
+        requestId: request.id,
+      })
+      return
+    }
+
+    reply.status(statusCode).send({
+      error: error.message || 'Request failed',
+      requestId: request.id,
+    })
+  })
+
   await app.register(healthRoutes)
   await app.register(authRoutes)
+  await app.register(adminRoutes)
   await app.register(uploadSessionRoutes)
   await app.register(loveGuruRoutes)
   await app.register(profileRoutes)

@@ -29,6 +29,13 @@ function toCsvList(value: string | undefined, fallback: string[]): string[] {
     .filter(Boolean)
 }
 
+function firstDefined(...values: Array<string | undefined>): string {
+  for (const value of values) {
+    if (value && value.trim()) return value.trim()
+  }
+  return 'unknown'
+}
+
 const nodeEnv = process.env.NODE_ENV ?? 'development'
 const defaultHost = nodeEnv === 'production' ? '0.0.0.0' : '127.0.0.1'
 
@@ -41,6 +48,15 @@ export const env = {
     'https://thethirdperson.ai',
     'https://www.thethirdperson.ai',
   ]),
+  adminEmails: toCsvList(process.env.ADMIN_EMAILS, []),
+  adminIds: toCsvList(process.env.ADMIN_IDS, []),
+  commitSha: firstDefined(
+    process.env.COMMIT_SHA,
+    process.env.GIT_COMMIT,
+    process.env.VERCEL_GIT_COMMIT_SHA,
+    process.env.RENDER_GIT_COMMIT,
+    process.env.RAILWAY_GIT_COMMIT_SHA,
+  ),
   logLevel: process.env.LOG_LEVEL ?? 'info',
   redisUrl: process.env.REDIS_URL ?? 'redis://127.0.0.1:6379',
   parseExportQueueName: process.env.PARSE_EXPORT_QUEUE_NAME ?? 'parse_export',

@@ -27,7 +27,7 @@
     "format": "prettier --write \"src/**/*.ts\""
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=20.19.0 <21 || >=22.12.0"
   },
   "dependencies": {
     "@fastify/cors": "^8.5.0",

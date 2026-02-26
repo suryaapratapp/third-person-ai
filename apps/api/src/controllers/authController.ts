@@ -14,6 +14,19 @@ import {
   verifyRegistrationOtp,
 } from '../services/authService'
 
+function isInfraError(message: string): boolean {
+  return /can't reach database server|invalid `prisma\.|prisma.*invocation|P1001|ECONNREFUSED/i.test(message)
+}
+
+function safeErrorMessage(error: unknown, fallback: string): string {
+  if (!(error instanceof Error)) return fallback
+  const message = error.message?.trim()
+  if (!message) return fallback
+  if (isInfraError(message)) return 'Service temporarily unavailable. Please try again shortly.'
+  if (message.length > 200) return fallback
+  return message
+}
+
 type LoginBody = {
   email: string
   password: string
@@ -71,7 +84,11 @@ export async function registerController(request: FastifyRequest<{ Body: Registe
     const result = await registerWithEmail(request.body)
     return reply.status(201).send(result)
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Registration failed'
+    const rawMessage = error instanceof Error ? error.message : 'Registration failed'
+    if (isInfraError(rawMessage)) {
+      return reply.status(503).send({ error: 'Service temporarily unavailable. Please try again shortly.' })
+    }
+    const message = safeErrorMessage(error, 'Registration failed')
     const statusCode = message.includes('already registered') ? 409 : 400
     return reply.status(statusCode).send({ error: message })
   }
@@ -85,7 +102,10 @@ export async function verificationStatusController(
     const result = await getVerificationStatus(request.query.email)
     return reply.status(200).send(result)
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unable to fetch verification status'
+    const message = safeErrorMessage(error, 'Unable to fetch verification status')
+    if (message === 'Service temporarily unavailable. Please try again shortly.') {
+      return reply.status(503).send({ error: message })
+    }
     const statusCode = message.includes('not found') ? 404 : 400
     return reply.status(statusCode).send({ error: message })
   }
@@ -96,7 +116,10 @@ export async function verifyOtpController(request: FastifyRequest<{ Body: Verify
     const result = await verifyRegistrationOtp(request.body)
     return reply.status(200).send(result)
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Verification failed'
+    const message = safeErrorMessage(error, 'Verification failed')
+    if (message === 'Service temporarily unavailable. Please try again shortly.') {
+      return reply.status(503).send({ error: message })
+    }
     const statusCode = message.includes('not found') ? 404 : 400
     return reply.status(statusCode).send({ error: message })
   }
@@ -107,7 +130,10 @@ export async function resendOtpController(request: FastifyRequest<{ Body: Resend
     const result = await resendRegistrationOtp(request.body)
     return reply.status(200).send(result)
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unable to resend OTP'
+    const message = safeErrorMessage(error, 'Unable to resend OTP')
+    if (message === 'Service temporarily unavailable. Please try again shortly.') {
+      return reply.status(503).send({ error: message })
+    }
     const statusCode = message.includes('not found') ? 404 : 400
     return reply.status(statusCode).send({ error: message })
   }
@@ -121,7 +147,10 @@ export async function completeRegistrationController(
     const result = await completeRegistration(request.body.email)
     return reply.status(200).send(result)
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unable to complete registration'
+    const message = safeErrorMessage(error, 'Unable to complete registration')
+    if (message === 'Service temporarily unavailable. Please try again shortly.') {
+      return reply.status(503).send({ error: message })
+    }
     const statusCode = message.includes('required') ? 403 : 400
     return reply.status(statusCode).send({ error: message })
   }
@@ -132,7 +161,10 @@ export async function loginController(request: FastifyRequest<{ Body: LoginBody 
     const result = await loginWithEmail(request.body.email, request.body.password)
     return reply.status(200).send(result)
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Invalid email or password'
+    const message = safeErrorMessage(error, 'Invalid email or password')
+    if (message === 'Service temporarily unavailable. Please try again shortly.') {
+      return reply.status(503).send({ error: message })
+    }
     const statusCode = message.includes('not verified') ? 403 : 401
     return reply.status(statusCode).send({ error: message })
   }
@@ -160,7 +192,10 @@ export async function resetPasswordController(
     const result = await resetPassword(request.body)
     return reply.status(200).send(result)
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unable to reset password'
+    const message = safeErrorMessage(error, 'Unable to reset password')
+    if (message === 'Service temporarily unavailable. Please try again shortly.') {
+      return reply.status(503).send({ error: message })
+    }
     return reply.status(400).send({ error: message })
   }
 }
@@ -181,7 +216,10 @@ export async function changePasswordController(
     })
     return reply.status(200).send({ success: true })
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unable to change password'
+    const message = safeErrorMessage(error, 'Unable to change password')
+    if (message === 'Service temporarily unavailable. Please try again shortly.') {
+      return reply.status(503).send({ error: message })
+    }
     return reply.status(400).send({ error: message })
   }
 }

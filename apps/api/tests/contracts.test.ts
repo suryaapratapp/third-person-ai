@@ -20,6 +20,9 @@ describe('API contract tests', () => {
     const schema = z.object({
       status: z.string().min(1),
       time: z.string().datetime().or(z.string().min(1)),
+      commit: z.string().min(1),
+      env: z.string().min(1),
+      db: z.string().min(1),
     })
 
     const parsed = schema.safeParse(res.json())
@@ -27,15 +30,88 @@ describe('API contract tests', () => {
   })
 
   it('Auth flow responses match contract shape', async () => {
-    const email = `contract-${Date.now()}@example.com`
+    const readyRes = await app.inject({ method: 'GET', url: '/ready' })
+    if (readyRes.statusCode !== 200) {
+      expect(readyRes.statusCode).toBe(503)
+      const readinessSchema = z.object({
+        status: z.literal('not_ready'),
+        checks: z.object({
+          database: z.literal('error'),
+        }),
+      })
+      const parsedReadiness = readinessSchema.safeParse(readyRes.json())
+      expect(parsedReadiness.success).toBe(true)
+      return
+    }
+
+    const baseEmail = `contract-${Date.now()}-${Math.floor(Math.random() * 1_000_000)}`
+    let email = `${baseEmail}@example.com`
     const password = 'Password123!'
 
-    const registerRes = await app.inject({
+    let registerRes = await app.inject({
       method: 'POST',
       url: '/auth/register',
-      payload: { email, password },
+      payload: {
+        firstName: 'Contract',
+        lastName: 'User',
+        email,
+        password,
+      },
     })
-    expect(registerRes.statusCode).toBe(201)
+
+    if (registerRes.statusCode === 400 && /already registered/i.test(registerRes.json().error || '')) {
+      email = `${baseEmail}-retry@example.com`
+      registerRes = await app.inject({
+        method: 'POST',
+        url: '/auth/register',
+        payload: {
+          firstName: 'Contract',
+          lastName: 'User',
+          email,
+          password,
+        },
+      })
+    }
+
+    expect(registerRes.statusCode, registerRes.body).toBe(201)
+
+    const registerSchema = z.object({
+      user: z.object({
+        id: z.string().min(1),
+        email: z.string().email(),
+        firstName: z.string().nullable(),
+        lastName: z.string().nullable(),
+        phone: z.string().nullable(),
+        dob: z.string().nullable(),
+        emailVerified: z.boolean(),
+        phoneVerified: z.boolean(),
+        createdAt: z.string().min(1),
+      }),
+      verification: z.object({
+        emailVerified: z.boolean(),
+        phoneVerified: z.boolean(),
+        phoneRequired: z.boolean(),
+        emailOtpExpiresAt: z.string().nullable(),
+        phoneOtpExpiresAt: z.string().nullable(),
+      }),
+    })
+
+    const parsedRegister = registerSchema.safeParse(registerRes.json())
+    expect(parsedRegister.success).toBe(true)
+
+    const verifyRes = await app.inject({
+      method: 'POST',
+      url: '/auth/verify-otp',
+      payload: { email, channel: 'email', otp: '123456' },
+    })
+    expect(verifyRes.statusCode).toBe(200)
+
+    const completeRes = await app.inject({
+      method: 'POST',
+      url: '/auth/register/complete',
+      payload: { email },
+    })
+    expect(completeRes.statusCode).toBe(200)
 
     const authSchema = z.object({
       user: z.object({
@@ -49,8 +125,8 @@ describe('API contract tests', () => {
       }),
     })
 
-    const parsedRegister = authSchema.safeParse(registerRes.json())
-    expect(parsedRegister.success).toBe(true)
+    const parsedComplete = authSchema.safeParse(completeRes.json())
+    expect(parsedComplete.success).toBe(true)
 
     const loginRes = await app.inject({
       method: 'POST',

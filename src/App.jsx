@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import ProtectedRoute from './components/auth/ProtectedRoute'
+import AdminRoute from './components/auth/AdminRoute'
 import AppShell from './layouts/AppShell'
 import SignInPage from './pages/auth/SignInPage'
 import RegisterPage from './pages/auth/RegisterPage'
@@ -14,6 +15,7 @@ import BotPage from './pages/BotPage'
 import ProfilePage from './pages/ProfilePage'
 import VibeCheckPage from './pages/VibeCheckPage'
 import VibeMatchPage from './pages/VibeMatchPage'
+import AdminPage from './pages/AdminPage'
 
 export default function App() {
   return (
@@ -79,6 +81,14 @@ export default function App() {
             <ProtectedRoute>
               <VibeCheckPage />
             </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <AdminRoute>
+              <AdminPage />
+            </AdminRoute>
           }
         />
         <Route path="/vibe-match" element={<VibeMatchPage />} />

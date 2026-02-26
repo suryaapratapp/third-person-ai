@@ -3,16 +3,16 @@ import { getHealth, getReady } from '../controllers/healthController'
 import { healthResponseSchema, readyResponseSchema } from '../schemas/healthSchema'
 
 export async function healthRoutes(app: FastifyInstance) {
-  app.get('/health', {
+  const healthRouteConfig = {
     schema: {
       response: {
         200: healthResponseSchema,
       },
     },
     handler: getHealth,
-  })
+  } as const
 
-  app.get('/ready', {
+  const readyRouteConfig = {
     schema: {
       response: {
         200: readyResponseSchema,
@@ -20,5 +20,11 @@ export async function healthRoutes(app: FastifyInstance) {
       },
     },
     handler: getReady,
-  })
+  } as const
+
+  app.get('/health', healthRouteConfig)
+  app.get('/api/health', healthRouteConfig)
+
+  app.get('/ready', readyRouteConfig)
+  app.get('/api/ready', readyRouteConfig)
 }

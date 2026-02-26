@@ -11,7 +11,7 @@
     "test": "vitest run"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=20.19.0 <21 || >=22.12.0"
   },
   "dependencies": {
     "@types/adm-zip": "^0.5.7",
