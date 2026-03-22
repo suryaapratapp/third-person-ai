@@ -15,6 +15,7 @@ type RunAnalysisJobData = {
 
 const redisConnection = new IORedis(env.redisUrl, {
   maxRetriesPerRequest: null,
+  tls: {},
 })
 
 async function setAnalysisStatus(analysisRunId: string, status: string) {

@@ -23,6 +23,7 @@ type InsightRow = {
 
 const redisConnection = new IORedis(env.redisUrl, {
   maxRetriesPerRequest: null,
+  tls: {},
 })
 
 const enqueueQueue = new Queue<AggregatePersonalityJobData>(env.aggregatePersonalityQueueName, {
