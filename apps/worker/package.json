@@ -21,6 +21,7 @@
     "ioredis": "^5.7.0",
     "openai": "^6.19.0",
     "pg": "^8.18.0",
+    "third-person-ai": "file:../..",
     "zod": "^4.3.6"
   },
   "devDependencies": {
