@@ -13,6 +13,7 @@ type ParseExportJobData = {
 
 const redisConnection = new IORedis(env.redisUrl, {
   maxRetriesPerRequest: null,
+  tls: {},
 })
 
 function resolveStoredPath(storagePath: string): string {
