@@ -1,5 +1,6 @@
 import { Prisma, type PersonEntityType } from '@prisma/client'
 import { prisma } from '../utils/prisma'
+import { NotFoundError } from '../errors/NotFoundError'
 
 export type PersonEntityDto = {
   id: string
@@ -72,7 +73,7 @@ async function getOwnedPersonEntity(userId: string, personEntityId: string) {
 }
 
 function toInputJsonValue(value: unknown): Prisma.InputJsonValue {
-  if (value === undefined) return {}
+  if (value === undefined) throw new Error('Undefined value cannot be stored as JSON')
   return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue
 }
 
@@ -87,7 +88,7 @@ export async function createProfileForUser(params: {
 
   if (personEntityId) {
     const existing = await getOwnedPersonEntity(params.userId, personEntityId)
-    if (!existing) return null
+    if (!existing) throw new NotFoundError('Person entity not found or does not belong to the user')
   } else {
     if (!params.name || !params.type) return null
     const createdEntity = await prisma.personEntity.create({
@@ -136,7 +137,7 @@ export async function createProfileForUser(params: {
     },
   })
 
-  if (!profile) return null
+  if (!profile) throw new NotFoundError('Profile not found for the user')
   return toProfileDto(profile)
 }
 
@@ -192,6 +193,6 @@ export async function getProfileForUser(
     },
   })
 
-  if (!profile) return null
+  if (!profile) throw new NotFoundError('Profile not found for the user')
   return toProfileDto(profile)
 }

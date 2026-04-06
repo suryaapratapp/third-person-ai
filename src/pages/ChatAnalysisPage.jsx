@@ -461,11 +461,13 @@ export default function ChatAnalysisPage() {
 
   const pollUploadSessionStatus = async (sessionId) => {
     let delayMs = 2000
+    let lastSeenStatus = null
 
     for (let attempt = 0; attempt < 20; attempt += 1) {
       try {
         const payload = await getStatus(sessionId)
         const status = payload?.session?.status
+        lastSeenStatus = status
 
         if (status === 'PARSED') {
           const reportCount = Number(payload?.parseReport?.parsedCount ?? 0)
@@ -540,6 +542,24 @@ export default function ChatAnalysisPage() {
       await new Promise((resolve) => window.setTimeout(resolve, delayMs))
       delayMs = Math.min(delayMs * 2, 10000)
     }
+
+    if (lastSeenStatus === 'QUEUED' || lastSeenStatus === 'PARSING') {
+      setErrors((prev) => ({
+        ...prev,
+        import:
+          'Parsing is still waiting on the server. Start the background worker from apps/worker (npm run dev), use the same REDIS_URL as the API, and ensure Redis is running. For TLS Redis, set REDIS_TLS=true in apps/worker/.env.',
+      }))
+    } else if (lastSeenStatus != null) {
+      setErrors((prev) => ({
+        ...prev,
+        import: `Parse status stayed "${lastSeenStatus}". Try again or check server logs.`,
+      }))
+    } else {
+      setErrors((prev) => ({
+        ...prev,
+        import: 'Could not confirm parse status. Check your connection and try again.',
+      }))
+    }
     return false
   }
 
@@ -577,6 +597,7 @@ export default function ChatAnalysisPage() {
       setParseFailure(null)
       const parsed = await parseChatFromFile(selectedApp, file)
       const sessionId = await ensureUploadSession()
+      console.log('parse chat from file is executed Upload session ID:', sessionId)
       if (sessionId) {
         await uploadFile(sessionId, file)
         const parsedOnServer = await pollUploadSessionStatus(sessionId)

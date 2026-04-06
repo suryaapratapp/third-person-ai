@@ -1,0 +1,31 @@
+{
+  "detectedFormat": "whatsapp_txt",
+  "sourceAppGuess": "whatsapp",
+  "confidence": 0.84,
+  "reasons": [
+    "Text includes WhatsApp-like timestamped sender line patterns."
+  ],
+  "warnings": [
+    "Detected sentiment trend in sample: mostly-positive."
+  ],
+  "parsedCount": 267,
+  "ignoredCount": 0,
+  "totalLines": 332,
+  "matchedLines": 267,
+  "participants": [
+    "Mehak",
+    "Deepak Sir",
+    "System"
+  ],
+  "expectedExamples": [
+    "[10/02/2026, 01:21:27] Name: message",
+    "10/02/2026, 01:21 - Name: message",
+    "{\"messages\":[{\"sender_name\":\"Name\",\"timestamp_ms\":1700000000000,\"content\":\"Hi\"}]}"
+  ],
+  "firstIgnoredLines": [],
+  "tips": [
+    "Remove non-chat headers at the top of the file if possible.",
+    "Export text-only chats when available (without media attachments).",
+    "Ensure each message starts with a timestamp and sender where possible."
+  ]
+}

@@ -1,10 +1,17 @@
 import type { FastifyReply, FastifyRequest } from 'fastify'
 import { ZodError } from 'zod'
+
+
 import {
-  createLoveGuruMessageBodySchema,
+  CreateLoveGuruThreadBody,
+  CreateLoveGuruMessageBody,
+  ListLoveGuruThreadsQuery,
+  LoveGuruThreadParams,
   createLoveGuruThreadBodySchema,
+  createLoveGuruMessageBodySchema,
   listLoveGuruThreadsQuerySchema,
   loveGuruThreadParamsSchema,
+
 } from '../schemas/loveGuruSchemas'
 import {
   createLoveGuruMessageForUser,
@@ -20,8 +27,9 @@ function formatZodError(error: ZodError) {
   }))
 }
 
+//create
 export async function createLoveGuruThreadController(
-  request: FastifyRequest,
+  request: FastifyRequest<{ Body: CreateLoveGuruThreadBody }>,
   reply: FastifyReply,
 ) {
   if (!request.authUserId) {
@@ -36,22 +44,32 @@ export async function createLoveGuruThreadController(
     })
   }
 
-  const thread = await createLoveGuruThreadForUser({
+  let thread
+try{
+   thread = await createLoveGuruThreadForUser({
     userId: request.authUserId,
     analysisId: parsedBody.data.analysisId,
     persona: parsedBody.data.persona,
     tone: parsedBody.data.tone,
   })
-
-  if (!thread) {
-    return reply.status(404).send({ error: 'Analysis run not found' })
-  }
-
   return reply.status(201).send({ thread })
+
+} catch (error) {
+   request.log.error({ error }, 'Failed to create LoveGuru thread')
+
+  
+    return reply.status(500).send({
+      error: 'Internal server error',
+    })
 }
 
+  
+
+}
+
+//get all threads
 export async function listLoveGuruThreadsController(
-  request: FastifyRequest,
+  request: FastifyRequest<{ Querystring: ListLoveGuruThreadsQuery }>,
   reply: FastifyReply,
 ) {
   if (!request.authUserId) {
@@ -66,20 +84,30 @@ export async function listLoveGuruThreadsController(
     })
   }
 
+  const analysisId = parsedQuery.data.analysisId
+try {
   const threads = await listLoveGuruThreadsForUser(
     request.authUserId,
-    parsedQuery.data.analysisId,
+    analysisId,
   )
+    return reply.status(200).send({ threads })
 
-  if (!threads) {
-    return reply.status(404).send({ error: 'Analysis run not found' })
-  }
 
-  return reply.status(200).send({ threads })
+} catch (error) {
+   request.log.error({ error }, 'Failed to list LoveGuru threads')
+   
+    return reply.status(500).send({
+      error: 'Internal server error',
+    })
 }
 
+ 
+
+}
+
+//get messages for a thread
 export async function listLoveGuruMessagesController(
-  request: FastifyRequest,
+  request: FastifyRequest<{ Params: LoveGuruThreadParams }>,
   reply: FastifyReply,
 ) {
   if (!request.authUserId) {
@@ -93,17 +121,21 @@ export async function listLoveGuruMessagesController(
       details: formatZodError(parsedParams.error),
     })
   }
+  
+  try {
+    const messages = await listThreadMessagesForUser(request.authUserId, parsedParams.data.id)
+    return reply.status(200).send({ messages })
+} catch (error) {
+   request.log.error({ error }, 'Failed to list LoveGuru thread messages')   
 
-  const messages = await listThreadMessagesForUser(request.authUserId, parsedParams.data.id)
-  if (!messages) {
-    return reply.status(404).send({ error: 'Love Guru thread not found' })
+  return reply.status(500).send({ error: 'Internal server error' })
+
   }
-
-  return reply.status(200).send({ messages })
 }
 
+//create message in thread
 export async function createLoveGuruMessageController(
-  request: FastifyRequest,
+  request: FastifyRequest<{ Params: LoveGuruThreadParams; Body: CreateLoveGuruMessageBody }>,
   reply: FastifyReply,
 ) {
   if (!request.authUserId) {
@@ -137,9 +169,10 @@ export async function createLoveGuruMessageController(
       return reply.status(404).send({ error: 'Love Guru thread not found' })
     }
 
-    return reply.status(201).send(result)
+    return reply.status(201).send({message: result})
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to create Love Guru message'
-    return reply.status(503).send({ error: message })
+    request.log.error({ error }, 'Failed to create Love Guru message')   
+
+    return reply.status(500).send({ error: 'Failed to create Love Guru message' })
   }
 }

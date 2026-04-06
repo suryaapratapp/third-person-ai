@@ -2,6 +2,9 @@ import { Queue } from 'bullmq'
 import IORedis from 'ioredis'
 import { env } from '../utils/env'
 
+// API → enqueue job → return fast
+// Worker → process in background
+//data recieved by parse jobs , it should always contain session id
 export type ParseExportJobData = {
   sessionId: string
 }
@@ -48,6 +51,7 @@ function getAnalysisQueue() {
 }
 
 export async function enqueueParseExportJob(sessionId: string) {
+  console.log("Enqueuing parse job", sessionId)
   return getQueue().add(
     'parse_export',
     { sessionId },
@@ -55,10 +59,13 @@ export async function enqueueParseExportJob(sessionId: string) {
       removeOnComplete: 100,
       removeOnFail: 100,
     },
+    
   )
 }
 
 export async function enqueueRunAnalysisJob(analysisRunId: string, sessionId: string) {
+  console.log("Enqueuing analysis job having analysis run Id and session Id ", analysisRunId, sessionId)
+
   return getAnalysisQueue().add(
     'run_analysis',
     { analysisRunId, sessionId },

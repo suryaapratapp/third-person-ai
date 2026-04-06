@@ -1,0 +1,331 @@
+22/01/26, 3:52 pm - Messages and calls are end-to-end encrypted. Only people in this chat can read, listen to, or share them. *Learn more*.
+22/01/26, 3:52 pm - Mehak: Hello sir
+22/01/26, 3:53 pm - Mehak: mehakbhardwaj1029@gmail.com - this is my email id
+22/01/26, 4:59 pm - Deepak Sir: Hi, offer letter kabtk chahiye?
+22/01/26, 5:02 pm - Mehak: 28 tak
+22/01/26, 5:02 pm - Mehak: Jan mai submit Krna hai
+22/01/26, 5:06 pm - Deepak Sir: Third person ka hi dedu?
+22/01/26, 5:07 pm - Deepak Sir: Par linkedin account nahi h abhi, agar uni check kregi to maybe suspicious ho!
+22/01/26, 5:07 pm - Deepak Sir: Teesick.com
+22/01/26, 5:07 pm - Deepak Sir: Iska bhi de skta hu!
+22/01/26, 5:07 pm - Mehak: Jo apko shi lage
+22/01/26, 5:08 pm - Mehak: Hn agar verify krne lage toh ho sakta hai
+22/01/26, 5:09 pm - Mehak: Ye wala bhi shi hai
+22/01/26, 5:09 pm - Deepak Sir: https://www.linkedin.com/company/teesick/
+22/01/26, 5:10 pm - Mehak: Ye theek hai verification mai bhi problem nhi aegi
+22/01/26, 5:48 pm - Mehak: 5/6 months ki duration  mention kr dena offer letter mai, compulsory rkhi hai college ne
+23/01/26, 10:53 pm - Mehak: https://excalidraw.com/#room=86af8bf524f5762e7530,5glbgxeYbvozdaqtzbJkkg
+23/01/26, 11:07 pm - Mehak: Isme maine apne ideas daale hai sir thode thethirdperson se related ,kya unique kar sakte hai  isme aur kaise current idea ko subconscious mind se relate kr sakte hai
+25/01/26, 6:13 am - Deepak Sir: Great stuff - I’ll let you know my thoughts on it
+25/01/26, 11:11 am - Deepak Sir: Sorry, mehak. I’m travelling from last couple of days - will sort out your offer letter tomorrow. Hope everything’s good.
+25/01/26, 12:08 pm - Mehak: No problem sir , you don't have to be sorry I can understand you must have had a busy schedule - I can submit the letter between Monday to Wednesday
+26/01/26, 11:09 am - Deepak Sir: Please check your email and confirm if you’re happy with it.
+26/01/26, 11:44 am - Mehak: Yes sir, I'm happy with it 
+Thank you <This message was edited>
+26/01/26, 11:48 am - Deepak Sir: <Media omitted>
+26/01/26, 11:49 am - Mehak: Thank you sir
+29/01/26, 4:24 pm - Deepak Sir: Hi Mehak - are you around for a gmeet call tomorrow at 3?
+29/01/26, 4:25 pm - Mehak: Sure sir
+29/01/26, 4:25 pm - Deepak Sir: great - i’ll send you an invite shortly
+29/01/26, 4:26 pm - Mehak: I will try to make a version 1 by tomorrow
+29/01/26, 4:26 pm - Deepak Sir: amazing, looking forward to it
+29/01/26, 4:28 pm - Mehak: Me too🙏
+30/01/26, 3:02 pm - Mehak: .
+31/01/26, 12:08 am - Mehak: You deleted this message
+31/01/26, 1:07 am - Mehak: Hello sir, I am confused about one thing which framework should we choose for the backend?
+Even though I am currently most comfortable with Spring Boot, from what I have read, it is not always a good choice for small- to medium-sized projects.
+Express is a good choice for fast startup, concurrency, and real-time I/O tasks, while FastApi is often preferred for AI/ML-heavy workloads.
+So, should we stick to either Python or Node, or can we use a hybrid approach using Python for AI-related tasks and Node for handling the rest?
+
+Or if there is any better framework?
+31/01/26, 4:49 pm - Deepak Sir: Hi mehak, you're thinking in the right direction. We should follow the hybrid approach - node for core backend logic, and fastapi for AI/LLM
+31/01/26, 4:49 pm - Deepak Sir: https://www.mosaicchats.com/chat-analysis
+31/01/26, 4:54 pm - Deepak Sir: analyse mosaic
+31/01/26, 4:55 pm - Deepak Sir: also, UI/UX as discussed on call - keep glassmorphism dark-mode theme in mind, it appeals GenZ aesthetics!
+31/01/26, 4:57 pm - Mehak: Ok sir, I'll be going with dark shades then
+02/02/26, 8:20 am - Deepak Sir: Good morning Mehak, 
+Please let me know if you face any issues or have any questions!
+02/02/26, 2:50 pm - Mehak: Good Afternoon sir , I have been working on frontend from past 2 days , I will try to finish it up by today or tomorrow to get a review from you <This message was edited>
+02/02/26, 3:09 pm - Deepak Sir: Great work - thank you!
+03/02/26, 9:45 pm - Mehak: https://thirdperson-murex.vercel.app/
+03/02/26, 9:52 pm - Mehak: Hello Sir, i did some experiments on frontend and created this till now , you can review it in your pc , since i have'nt added mobile responsiveness yet. I'm looking forward to know that what changes i have to make in it.
+03/02/26, 9:56 pm - Mehak: I am bit confused about what details i have to add on landing page since that will decide design of our backend also
+06/02/26, 12:43 pm - Deepak Sir: I’ll update you on this!
+08/02/26, 4:42 pm - Deepak Sir: Hi Mehak,
+Please research current LLMs, compare them and perform a SWOT analysis for each including pricing (token/usage costs). Identify the best value and fit for our project.
+Also, review recent research on conversation analysis, sentiment analysis and personality inference from text.
+
+Also, please share your bank/UPI details. Thank you!
+08/02/26, 4:49 pm - Deepak Sir: This looks really good. 
+
+I’ve updated thethirdperson.ai similar to mosaicchats - I’ll update the keywords later. 
+
+For this week, let’s focus on documenting the complete application architecture and all required components.
+08/02/26, 6:55 pm - Mehak: Ok sir
+08/02/26, 6:56 pm - Mehak: I'm glad that you liked it
+08/02/26, 7:01 pm - Mehak: I use this number for UPI 8595568082
+09/02/26, 12:09 am - Mehak: https://thirdperson-murex.vercel.app/. -- sir i have modified the frontend and added MCQ based questionnaire to some sections
+09/02/26, 12:11 am - Mehak: For now you'll get the best view on pc since I haven't made it responsive for mobiles
+09/02/26, 12:20 am - Mehak: Do let me know if the previous one was better or if both designs are not meeting your expectations 
+
+Since I am not very good with the frontend so if it needs more enhancement in any aspect I'll keep working on it side by side while doing the specific tasks you'll assign me
+09/02/26, 2:42 pm - Deepak Sir: Hi Mehak, we’ll talk about the product architecture tomorrow. Hold working on the product development part!
+09/02/26, 3:45 pm - Deepak Sir: Great addition! We’ll implement these features
+09/02/26, 4:42 pm - Deepak Sir: Can you send me these by Wednesday? Let me know if you’re occupied with something else!
+09/02/26, 4:46 pm - Mehak: I will send you some work i did by tonight only
+09/02/26, 4:46 pm - Deepak Sir: great, share the google doc type
+09/02/26, 4:47 pm - Mehak: I just have to invest time on SWOT analysis, LLM analysis part will be probably done by tonight
+09/02/26, 4:48 pm - Deepak Sir: LLMs comparison, pricing?
+09/02/26, 5:02 pm - Mehak: I have figured out the best LLM that project should use now I just have to calculate which one has better cost to performance ratio
+10/02/26, 1:18 am - Mehak: https://docs.google.com/document/d/1rEIQ98tIb340wIDlUsvyRptjtCg7YfrBESHx6XGc92w/edit?usp=sharing
+10/02/26, 1:20 am - Mehak: Sir should i mail documents to this address from now on surya.pratap@revolution-zero.com
+10/02/26, 1:21 am - Mehak: I will try to complete the SWOT analysis by tomorrow
+10/02/26, 11:45 am - Deepak Sir: please provide access to the doc, thank you!
+10/02/26, 11:45 am - Deepak Sir: you can either send here only or email at suryapratap333@gmail.com
+10/02/26, 11:46 am - Deepak Sir: wonderful, all the best!
+10/02/26, 11:51 am - Mehak: I have provided the access,sir.
+10/02/26, 8:37 pm - Mehak: Hello Sir, I have completed the SWOT analysis.
+Please let me know if it feels incomplete or if there are any domains I should research further.
+ https://docs.google.com/document/d/1ZoJZRTx8GN7KfEax6V84MipnGeOuyFvQMrGTKtaHTvo/edit?usp=sharing
+12/02/26, 9:29 am - Deepak Sir: Good job, Mehak. We also need to include citations in the doc. For ex, if this information is shared with potential investors, we must clearly state the sources it is based on.
+12/02/26, 9:29 am - Deepak Sir: Let me know if you have any question.
+12/02/26, 9:31 am - Deepak Sir: Have you written literature reviews?
+12/02/26, 11:05 am - Mehak: Sorry Sir, I wasn’t aware that I needed to prepare a literature review as well, so I haven’t prepared it yet. However, after reviewing what should be included in a literature review, I realized that I have already studied most of the required material while researching the topic. I just need to organize it properly with citations in a structured format. I will complete it and share it with you by tonight. Would that work for you?
+12/02/26, 11:05 am - Deepak Sir: Oh it’s not that urgent. Take your time!
+12/02/26, 11:06 am - Mehak: Psychological effects of romantic relationships on individuals. - is this topic okay
+12/02/26, 11:06 am - Deepak Sir: Literature reviews ek proof ki tarah work karega hamare idea ke liye
+12/02/26, 11:06 am - Deepak Sir: And idea ko jab hum represent karege to we can say ki ye sab humne research kari h and uske basis pe review article bhi likha hai
+12/02/26, 11:07 am - Mehak: Okay sir
+12/02/26, 11:07 am - Deepak Sir: Haa sounds good.
+12/02/26, 11:07 am - Deepak Sir: And plagiarism check rakhnaa!
+12/02/26, 11:08 am - Mehak: Is there anything that I should start working on now
+12/02/26, 11:08 am - Mehak: Apart from literature review
+12/02/26, 11:08 am - Deepak Sir: Haaan abhi to literature reviews
+12/02/26, 11:08 am - Deepak Sir: It will help develop your research skills
+12/02/26, 11:08 am - Deepak Sir: Most important research skill hai ye
+12/02/26, 11:09 am - Deepak Sir: Btech me esa kuch kia h?
+12/02/26, 11:09 am - Mehak: Mujhe pasand bhi hai research krna
+12/02/26, 11:10 am - Mehak: B.tech hee nhi kri sir
+12/02/26, 11:10 am - Deepak Sir: Hahaha acha
+12/02/26, 11:13 am - Deepak Sir: Apne course me? BCA?
+12/02/26, 11:13 am - Deepak Sir: Literature review karna tha?
+12/02/26, 11:16 am - Mehak: Sir, i realised if we somehow add monetization into this it can help us in acquiring more consumers, twitter ne jabse monetization kra hai tabse there consumers and content have increased exponentially. If premium consumer can get paid after achieving certain achievements that we will decide they can get  paid
+12/02/26, 11:18 am - Mehak: MCA Kra hai sir maine , we had seminars toh usme research krni padti thi toh vo kri hai
+12/02/26, 11:19 am - Deepak Sir: Haan monetization krege! Abhi me sab structure me kr rha hu
+12/02/26, 11:19 am - Deepak Sir: Okay!
+12/02/26, 11:20 am - Deepak Sir: Firr ek bar youtube pe dekho literature reviews kese likhte h
+12/02/26, 11:20 am - Deepak Sir: And go for it!
+12/02/26, 11:22 am - Deepak Sir: Product structure, frontend pe me work kar rha hu filhaal, to abhi apne end se hold pr rakhna but open for suggestions. Jo bhi suggestion ho let me know straight away!
+12/02/26, 11:22 am - Mehak: Yes sir!!
+12/02/26, 11:23 am - Mehak: Ok sir
+12/02/26, 11:25 am - Deepak Sir: https://youtu.be/YdrO3g2flVo?si=zVJQACEFhqB6xpGN
+12/02/26, 11:32 am - Mehak: Thank you sir
+12/02/26, 11:50 am - Deepak Sir: Check this out and let me know if you’re good to go!
+17/02/26, 10:27 am - Deepak Sir: Good morning Mehak, please let me know if you have any update!
+17/02/26, 11:02 am - Mehak: Good morning, Sir. I apologize for not updating you on my work. I haven’t been feeling well for the past couple of days, which is why it took me longer than expected time. However, I will share the literature review with you by 12 PM.
+17/02/26, 11:04 am - Deepak Sir: I hope you’re feeling better now. No pressure, take your time but please update me regularly so I can plan your tasks. Thank you!
+17/02/26, 11:13 am - Mehak: Okay, Sir.
+I will keep you regularly updated on my work. Thank you for being considerate.
+17/02/26, 2:09 pm - Mehak: https://docs.google.com/document/d/1NJwZQ3Pre2o2Ye9qU6OJx4-XjEJ_fp-1obC0Pzi-eh0/edit?usp=sharing
+17/02/26, 2:10 pm - Mehak: Hello Sir, I have completed the literature review .Please let me know if it is appropriate.
+18/02/26, 1:57 pm - Mehak: Hello Sir, I came across a project with a similar concept. They offer personalized avatars for users, which makes interactions with the AI feel more engaging and realistic. I believe incorporating a similar feature into our project could enhance the user experience.
+18/02/26, 1:58 pm - Mehak: https://replika.com/?srsltid=AfmBOoo0-N9i0kuJ1dV5re70oS8WobXYvR-Q7DkdBY3lcPrtZyMDgnE2
+18/02/26, 2:02 pm - Mehak: If the idea of providing avatar to every user feels more complex , we can just start by giving avatar to the roles assigned to AI( roaster, friend , neutral etc)
+18/02/26, 3:20 pm - Deepak Sir: Brilliant!
+18/02/26, 3:20 pm - Deepak Sir: Currently in AI summit - I’ll talk to you about it
+18/02/26, 3:20 pm - Deepak Sir: 
+18/02/26, 3:20 pm - Deepak Sir: <Media omitted>
+18/02/26, 3:20 pm - Deepak Sir: <Media omitted>
+18/02/26, 3:20 pm - Deepak Sir: <Media omitted>
+18/02/26, 3:20 pm - Deepak Sir: <Media omitted>
+18/02/26, 3:20 pm - Deepak Sir: <Media omitted>
+18/02/26, 3:20 pm - Deepak Sir: <Media omitted>
+18/02/26, 3:27 pm - Mehak: Hopefully we can be one of the creators in next summit
+20/02/26, 9:21 pm - Mehak: You deleted this message
+20/02/26, 9:25 pm - Mehak: You deleted this message
+22/02/26, 10:33 am - Deepak Sir: Very interesting. I’ll update you what I’ve done so far by evening!
+22/02/26, 10:33 am - Deepak Sir: Agreeee 💯
+22/02/26, 11:15 am - Mehak: Okay sir, looking forward to it
+23/02/26, 7:59 pm - Deepak Sir: Hi Mehak, I was busy with various projects. 
+Just to have you an idea - please check www.thethirdperson.ai
+23/02/26, 8:01 pm - Deepak Sir: The registration is not working at the moment - so you won’t be able to see the complete features. I’ll fix that and will update you asap. Meanwhile, create the list of features/use cases that we can implement.
+23/02/26, 8:02 pm - Deepak Sir: Check if you’re able to create svg of avatars
+23/02/26, 11:53 pm - Mehak: Okay sir, I will create the list of features and will work on 3d avatars
+26/02/26, 6:02 pm - Mehak: <Media omitted>
+26/02/26, 6:03 pm - Mehak: Hello sir, will this kind of avatar be appropriate?
+26/02/26, 6:06 pm - Deepak Sir: This kind works as a coach!
+26/02/26, 6:06 pm - Mehak: <Media omitted>
+26/02/26, 6:07 pm - Mehak: Yes I created it keeping that in mind
+26/02/26, 6:07 pm - Mehak: Because you have added 2 roles in the UI coach and friend
+26/02/26, 6:08 pm - Deepak Sir: This looks better and modern
+26/02/26, 6:08 pm - Deepak Sir: Yes
+26/02/26, 6:09 pm - Mehak: Should I change its face because I have added the face reference from pinterest, just for experimenting or it looks good ?
+26/02/26, 6:10 pm - Deepak Sir: Would be good if you send some more
+26/02/26, 6:11 pm - Mehak: Okay sir
+26/02/26, 10:58 pm - Mehak: https://excalidraw.com/#room=cebe2350e4f5199078d9,qo9pt5OWlCXuxYFWJDXaUQ
+26/02/26, 11:00 pm - Mehak: Hello Sir, I've added some  features in this after analysing your design and have also added some of my suggestions.
+01/03/26, 6:27 pm - Mehak: <Media omitted>
+01/03/26, 6:27 pm - Mehak: <Media omitted>
+01/03/26, 6:28 pm - Mehak: Hello Sir, How does these models look for bestie role , 1st one is from chatgpt and 2nd from nano banana for the same prompt, i found the 1st one better.
+01/03/26, 6:35 pm - Deepak Sir: Looks really good! I also like 1st one more
+01/03/26, 6:39 pm - Mehak: I have figured out the way to create these models , so I can create more but I feel the 1st one is looking amazing .
+01/03/26, 6:41 pm - Mehak: But because of the limit i can generate limited images
+01/03/26, 6:44 pm - Mehak: You deleted this message
+03/03/26, 10:56 am - Deepak Sir: I’ll add it on the web today
+03/03/26, 2:12 pm - Mehak: <Media omitted>
+03/03/26, 2:14 pm - Mehak: <Media omitted>
+03/03/26, 2:16 pm - Mehak: <Media omitted>
+03/03/26, 2:16 pm - Mehak: Hello SIr, How does this character look for coach role
+03/03/26, 5:57 pm - Mehak: Hello sir, can you give me feedback on this  https://likhawat.vercel.app
+03/03/26, 6:52 pm - Deepak Sir: Yes looks good to me
+04/03/26, 8:31 am - Deepak Sir: <Media omitted>
+04/03/26, 9:58 am - Mehak: You deleted this message
+04/03/26, 10:13 am - Mehak: You deleted this message
+04/03/26, 10:13 am - Mehak: <Media omitted>
+10/03/26, 11:02 pm - Mehak: Hello Sir, I hope you are doing good . <This message was edited>
+10/03/26, 11:04 pm - Mehak: I have created a database design for third-person. Please do let me know the improvements i should make in it .
+10/03/26, 11:05 pm - Mehak: https://excalidraw.com/#room=5559b20335602c487fba,VZbNfsv0PtJO1ETv5kTdig
+13/03/26, 9:46 am - Deepak Sir: Hi Mehak, what’s your github username/email?
+13/03/26, 10:30 am - Mehak: Hello sir , it's 
+ https://github.com/mehakbhardwaj1029-ops
+13/03/26, 10:31 am - Mehak: Username - mehakbhardwaj1029-ops
+13/03/26, 10:36 am - Deepak Sir: Download this repo and run - understand the code and make the backend work.
+13/03/26, 10:36 am - Deepak Sir: Let me know if you have any questions!
+13/03/26, 11:32 am - Mehak: Okay sir, do you have a preferred deadline by which the project should be completed? I will keep you updated regularly on the progress, but I wanted to know your expectation.
+13/03/26, 12:10 pm - Deepak Sir: End of this month
+13/03/26, 12:12 pm - Deepak Sir: Use AI tools - let me know if you need subscription of any!
+13/03/26, 1:10 pm - Mehak: Okay sir, I'll be an unpaid version of cursor for now.
+13/03/26, 1:12 pm - Mehak: Let's see how far I can go with it
+13/03/26, 1:13 pm - Mehak: I will keep you updated regularly
+13/03/26, 1:48 pm - Deepak Sir: Cursor is expensive as far as i know! What’s the monthly cost?
+13/03/26, 3:44 pm - Mehak: It's free for 14 days after that it is for $20/month , codex is also for $20/month, github copilot is for $10/month
+13/03/26, 3:45 pm - Deepak Sir: Alright, remind me after 14 days
+13/03/26, 3:46 pm - Mehak: Okay sir
+15/03/26, 4:06 pm - Deepak Sir: Hi Mehak, keep me updated regularly about your progress. Thank you.
+15/03/26, 4:41 pm - Mehak: Hello Sir, Since I haven't worked with some of the frameworks and services you've used so right now I'm just studying the codebase.
+15/03/26, 4:44 pm - Mehak: But since I have implemented the same in Java, I am not facing much difficulty.
+15/03/26, 4:45 pm - Mehak: I'll probably start working on the backend by today or tomorrow.
+15/03/26, 5:04 pm - Deepak Sir: Great
+16/03/26, 12:52 pm - Mehak: Good afternoon Sir,
+I ran the project and noticed that the following features are currently working:
+
+1. Intent onboarding is working, but it is running without LLM calls.
+2. Authentication is working.
+3. Message imports are working.(Should we redirect the user to the specific messaging platform they choose?)
+4. Insights generation is currently hardcoded.
+
+Could you please confirm if my understanding is correct, and let me know what I should add to the project.
+16/03/26, 12:55 pm - Mehak: I also wanted to know if this is the final UI or just a mockup.
+16/03/26, 12:56 pm - Mehak: Because it feels very cluttered to me right now.
+16/03/26, 12:58 pm - Mehak: The registration process in most of the applications is google sign in and email ,username.
+16/03/26, 1:00 pm - Deepak Sir: LLM is https://developer.puter.com for initial testing and MVP - it’s already there
+16/03/26, 1:01 pm - Deepak Sir: We can’t redirect user to specific messaging platform. Currently, user can only copy-paste or upload their message files.
+16/03/26, 1:02 pm - Deepak Sir: Insights generation is not hardcoded, but jo fields hume show karni h vo hardcoded hai, not the analysis - analysis Puter ke through ho rha h!
+16/03/26, 1:02 pm - Mehak: Ohhh I got its popup but thought I mistakenly clicked on something, my bad.
+16/03/26, 1:02 pm - Deepak Sir: Abhi ese hi rakhte h, backend strong karlete h!
+16/03/26, 1:02 pm - Deepak Sir: Haan agar vo reject kia hoga to hardcoded hai analysis
+16/03/26, 1:03 pm - Deepak Sir: Google sign-in add karege, abhi normal registration/signin fix kardo! Google sign up/in bhi add kardo if you want.
+16/03/26, 1:04 pm - Deepak Sir: Abhi registration me issue h
+16/03/26, 1:04 pm - Mehak: Colors vgrh sab sahi lag rhe hai bas components ke beech mai spacing jis cheez ko dekh rhe hai usse focus hata rhi hai.
+16/03/26, 1:05 pm - Mehak: Local par toh chal rha hai ,cloud mai issue aa rha hai?
+16/03/26, 1:05 pm - Deepak Sir: Theek h! Fix that lekin pehle pura end-to-end process test/fix karo!
+16/03/26, 1:05 pm - Deepak Sir: Ha
+16/03/26, 1:07 pm - Mehak: Hn smjh gai sir.
+16/03/26, 2:48 pm - Mehak: You deleted this message
+19/03/26, 7:12 pm - Mehak: Hello sir, sorry for not updating you with progress for the past 2 days.
+19/03/26, 7:16 pm - Mehak: I was unable to work on the project as I visited Vrindavan
+19/03/26, 7:22 pm - Mehak: Vite type declaration file is missing in the frontend src folder , i have added it but I'm  analysing the backend more precisely before pushing PR .
+
+I'll probably be done by tomorrow.
+19/03/26, 9:08 pm - Deepak Sir: No worries, Mehak! All the best 😊
+19/03/26, 9:08 pm - Deepak Sir: <Media omitted>
+19/03/26, 9:53 pm - Mehak: Thank you sir🙏
+19/03/26, 10:00 pm - Mehak: <Media omitted>
+22/03/26, 10:38 pm - Mehak: Hello sir, i have pushed my PR please do let me know if the fix is working for your deployed backend
+22/03/26, 10:40 pm - Mehak: I have tested it after deploying and it is working for me
+22/03/26, 10:46 pm - Mehak: Abse thoda zada progress krne ki koshish krungi sir , Vrindavan se aane ke baad tabiyat theek nhi thi so I couldn't give my best
+
+Thank you for being considerate 🙏
+23/03/26, 12:25 am - Deepak Sir: Error during sign up
+23/03/26, 12:25 am - Deepak Sir: <Media omitted>
+23/03/26, 12:26 am - Deepak Sir: No worries, i hope you’re better now!
+23/03/26, 12:26 am - Deepak Sir: Agar tumhara login ho rha h to send me your credentials
+23/03/26, 12:27 am - Mehak: Yes I'm much better now
+23/03/26, 12:27 am - Mehak: Okay sir
+23/03/26, 12:34 am - Mehak: REDIS_URL - redis://default:gQAAAAAAATz5AAIncDI0NzA3NjlkYjljODE0Zjk1YjQzZDgzYjc0MDJhMTcxY3AyODExNDU@active-bull-81145.upstash.io:6379                      DB_URL - postgresql://neondb_owner:npg_WKDjplzEqf45@ep-rapid-dream-ankobt0p-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+23/03/26, 1:23 am - Mehak: Soory sir i forgot to provide you the API and frontend url
+23/03/26, 1:24 am - Mehak: VITE_API_URL=https://third-person-ai-raxa.onrender.com
+ CROSS_ORIGIN=CORS_ORIGIN=https://third-person-ai-five.vercel.app
+23/03/26, 1:27 am - Mehak: Worker deployment is paid so i had to test it locally
+23/03/26, 1:35 am - Mehak: Since i am using upstash for redis so the conection needs to be secure or else it will throw error - you can either add a extra s ro redis://default...url (redis->rediss) in the connection string or while creating the connection add -> tls={} ( const connection = new IORedis(process.env.REDIS_URL, {
+  tls: {}
+}) to tell IO redis to use tls.
+23/03/26, 1:38 am - Mehak: Supabase is blocked by indian government so if you have used it then that might be the reason you are still getting error.
+23/03/26, 1:51 am - Mehak: I've commited this change ,please let me know if there is a better approach apart from this to resolve tls error                                                        Thank you.
+25/03/26, 7:01 pm - Deepak Sir: Hi Mehak, i’m travelling - please let me know if you need anything from my end
+25/03/26, 7:02 pm - Deepak Sir: Or update me if the web version is working for a quick basic demo?
+25/03/26, 7:19 pm - Mehak: Hello sir, it's working from my end I have tested it after deploying (except worker because it needs paid deployment)
+25/03/26, 7:20 pm - Mehak: I have already shared the details with you earlier
+25/03/26, 7:20 pm - Mehak: .
+25/03/26, 7:23 pm - Mehak: I’m going through the code right now to see if we can make the backend more robust and concise.
+25/03/26, 7:28 pm - Mehak: Please let me know if there’s anything else I should work on. I assumed you were still facing the login and signup issue, so I didn’t ask what i should work on next.
+26/03/26, 3:46 pm - Deepak Sir: Still facing “service temporarily unavailable” issue during registration
+26/03/26, 3:58 pm - Mehak: If you've used the same url's as mine then probably the issue is in worker because that is the only thing I am running locally
+26/03/26, 3:58 pm - Mehak: Probably something is breaking when worker is deployed
+26/03/26, 3:59 pm - Mehak: I'll look into it.
+26/03/26, 4:03 pm - Deepak Sir: Registration/login work kar rha h tumhare liye?
+26/03/26, 4:03 pm - Deepak Sir: Live site pe?
+26/03/26, 4:03 pm - Mehak: Yes sir mai video bhej deti hu demo check ki
+26/03/26, 4:04 pm - Deepak Sir: Haa please
+26/03/26, 4:04 pm - Mehak: Frontend url.
+26/03/26, 4:06 pm - Deepak Sir: Worked with https://third-person-ai-five.vercel.app
+26/03/26, 4:09 pm - Mehak: Finally 😄
+29/03/26, 12:00 am - Mehak: Hi Sir,
+
+I am currently working on adding Google login to our authentication system and wanted to get your guidance before proceeding further.
+
+I have implemented the basic flow where the frontend sends the Google `idToken` and the backend verifies it. While integrating this with our existing user schema, I noticed a potential issue.
+
+At the moment, our system identifies users primarily using email. If a user logs in via Google and later tries to log in using our local authentication (or vice versa), we won’t be able to clearly distinguish how the account was originally created. This could lead to ambiguity in scenarios like password reset, account linking, or handling users who do not have a password set (in case of Google-only login).
+
+To address this, I was considering extending the user model by adding:
+
+* `provider` (LOCAL / GOOGLE)
+* `providerId` (Google’s unique identifier)
+
+This would help in maintaining a clear distinction between authentication methods and make the system more robust for future extensions.
+
+I wanted to take your input on whether this approach aligns with the overall design since i have to modify our existing schema, or if you would suggest a different way to handle this.
+
+Thank you.
+30/03/26, 12:19 am - Mehak: Hello Sir,
+I was working on the UI for my project and made a few modifications from a third-person perspective to get your feedback.
+If you like the structure for chat analysis and file export, I can integrate it into our project.
+Please let me know if anything feels off or needs improvement.( If my designing skills are below worst then please let me know, I will drop the idea of investing my time on designing🙂)
+30/03/26, 12:24 am - Mehak: If there is any specific component of the third-person backend that you would like me to focus on, please let me know.
+At the moment, I am proceeding based on my assumptions and some research, but your experience would provide better insight into which parts are most vulnerable in production.    
+
+Thank you
+30/03/26, 10:42 am - Deepak Sir: I’ll update you soon!
+02/04/26, 12:11 pm - Deepak Sir: Sorry for the late payment - I was busy with few things since last week. Hope everything’s good with you. 
+Please focus on improving the third person! 
+Do some testing, create account, do analysis, create personality (vibe check), modify the avatar on homepage, direct the website to thethirdperson.ai
+02/04/26, 12:15 pm - Deepak Sir: <Media omitted>
+02/04/26, 12:20 pm - Mehak: Hello sir, I’m currently working on improving the backend security, consistency, performance. Due to some health issues, I wasn’t able to contribute much earlier, but over the past 3–4 days I’ve been actively working on strengthening the backend, as you had suggested.
+02/04/26, 12:20 pm - Deepak Sir: Wonderful! All the best
+02/04/26, 12:20 pm - Deepak Sir: Can we launch it for friends/family anytime soon?
+02/04/26, 12:22 pm - Mehak: Yes sir i believe since now it is working we can take reviews
+02/04/26, 12:22 pm - Mehak: Parallely I will work on the backend
+02/04/26, 12:23 pm - Deepak Sir: Let’s improve it a bit more
+02/04/26, 12:23 pm - Deepak Sir: Next friday ka target rakhte h
+02/04/26, 12:23 pm - Deepak Sir: Backend strong jaruri h
+02/04/26, 12:23 pm - Mehak: This file export also needs to be made workable
+02/04/26, 12:24 pm - Deepak Sir: Chat analysis > provide analysis
+
+Vibe check - creates personality based on analysed chats.
+02/04/26, 12:24 pm - Mehak: I will push a pr by today or tomorrow so that you can review if the decisions that I have made in backend are okay for you
+02/04/26, 12:25 pm - Deepak Sir: Okay great
+02/04/26, 12:26 pm - Mehak: Okay sir, Thank you
+04/04/26, 1:04 am - Mehak: Hello Sir, Should i add a feature to generate a card about user(after i am done with the backend and the file upload part ) ,in the create personality or vibe check section if it works for you.                                         I have created a demo card ,you can review it here - https://vibe-card.netlify.app/                                    Thank You
+04/04/26, 7:24 am - Deepak Sir: Looks really good, go for it!
+04/04/26, 10:06 am - Mehak: Okay sir, Thank you

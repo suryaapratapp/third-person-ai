@@ -1,6 +1,19 @@
 import dotenv from 'dotenv'
+import type { RedisOptions } from 'ioredis'
 
 dotenv.config()
+
+/** Match API queueService: plain redis:// must not use TLS (local Redis). Use rediss:// or REDIS_TLS=true for TLS. */
+export function getRedisConnectionOptions(): RedisOptions {
+  const url = process.env.REDIS_URL ?? 'redis://127.0.0.1:6379'
+  const useTls =
+    url.startsWith('rediss://') ||
+    (process.env.REDIS_TLS ?? '').trim().toLowerCase() === 'true'
+  return {
+    maxRetriesPerRequest: null,
+    ...(useTls ? { tls: {} } : {}),
+  }
+}
 
 function resolveAnalysisMode(rawMode: string | undefined, apiKey: string): 'mock' | 'live' {
   const normalized = (rawMode ?? '').trim().toLowerCase()

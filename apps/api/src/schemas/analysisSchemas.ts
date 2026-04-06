@@ -17,7 +17,7 @@ export const analysisInsightItemSchema = z.object({
 
 export const analysisInsightsResponseSchema = z.object({
   analysisRunId: z.string(),
-  status: z.string(),
+  status: z.string().trim().min(1).optional(),
   insights: z.array(analysisInsightItemSchema),
 })
 

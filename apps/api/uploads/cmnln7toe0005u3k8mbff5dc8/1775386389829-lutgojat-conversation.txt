@@ -1,0 +1,21 @@
+[10:00 AM] Rahul: Hey, are you free to talk about the project? [10:01
+AM] Aman: Yeah, sure. What’s up?
+
+[10:02 AM] Rahul: I was reviewing the backend structure, and I think we
+need to refactor the auth module. [10:03 AM] Aman: Hmm, what issues did
+you find?
+
+[10:04 AM] Rahul: It’s tightly coupled with external integrations like
+Google login. If we remove one part, everything breaks. [10:05 AM] Aman:
+That sounds bad. What do you suggest?
+
+[10:06 AM] Rahul: We should introduce an abstraction layer, like an auth
+provider interface. [10:07 AM] Aman: Makes sense. That way, we can plug
+in different providers easily.
+
+[10:08 AM] Rahul: Exactly. It will also improve scalability and
+maintainability. [10:09 AM] Aman: Alright, let’s plan this refactor
+today.
+
+[10:10 AM] Rahul: Cool, I’ll draft the design and share it with you.
+[10:11 AM] Aman: Great, looking forward to it!

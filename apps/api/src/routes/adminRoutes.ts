@@ -11,37 +11,37 @@ import {
 import { requireAdminAuth } from '../utils/adminAuth'
 
 export async function adminRoutes(app: FastifyInstance) {
-  app.get('/admin/users', {
+  app.get('/admin/users', {   
     preHandler: requireAdminAuth,
     handler: adminListUsersController,
   })
 
-  app.post('/admin/users', {
+  app.post('/admin/users', {  
     preHandler: requireAdminAuth,
     handler: adminCreateUserController,
   })
 
-  app.patch('/admin/users/:id', {
+  app.patch('/admin/users/:id', {  
     preHandler: requireAdminAuth,
     handler: adminUpdateUserController,
   })
 
-  app.delete('/admin/users/:id', {
+  app.delete('/admin/users/:id', {  
     preHandler: requireAdminAuth,
     handler: adminDeleteUserController,
   })
 
-  app.get('/admin/upload-sessions', {
+  app.get('/admin/upload-sessions', {   
     preHandler: requireAdminAuth,
     handler: adminListUploadSessionsController,
   })
 
-  app.patch('/admin/upload-sessions/:id', {
+  app.patch('/admin/upload-sessions/:id', { 
     preHandler: requireAdminAuth,
     handler: adminUpdateUploadSessionController,
   })
 
-  app.delete('/admin/upload-sessions/:id', {
+  app.delete('/admin/upload-sessions/:id', {  
     preHandler: requireAdminAuth,
     handler: adminDeleteUploadSessionController,
   })

@@ -3,7 +3,7 @@ import { createMatchesController, getMatchController } from '../controllers/matc
 import { requireProtectedAuth } from '../utils/protectionMiddleware'
 
 export async function matchRoutes(app: FastifyInstance) {
-  app.post('/matches', {
+  app.post('/matches', {    //done
     preHandler: requireProtectedAuth,
     handler: createMatchesController,
   })

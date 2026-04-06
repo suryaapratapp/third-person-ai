@@ -4,6 +4,22 @@ import { z } from 'zod'
 import { pool } from '../utils/db'
 import { env } from '../utils/env'
 
+
+// [DB Messages]
+//       ↓
+// [Normalize]
+//       ↓
+// [Chunking]
+//       ↓
+// [Chunk Summaries via OpenAI]
+//       ↓
+// [Combine Summaries]
+//       ↓
+// [Final AI Analysis]
+//       ↓
+// [Structured Insights (Zod validated)]
+//       ↓
+// [Return + Token Usage]
 type NormalizedMessage = {
   timestamp: Date
   sender: string
@@ -256,7 +272,7 @@ async function loadMessagesForSession(sessionId: string): Promise<NormalizedMess
   }>(
     `SELECT timestamp, sender, text
      FROM messages
-     WHERE upload_session_id = $1
+     WHERE "uploadSessionId" = $1
      ORDER BY timestamp ASC
      LIMIT $2`,
     [sessionId, env.analysisMaxInputMessages],

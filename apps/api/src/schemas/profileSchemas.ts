@@ -20,14 +20,17 @@ export const createProfileBodySchema = z
     personEntityId: z.string().trim().min(1).optional(),
     name: z.string().trim().min(1).max(120).optional(),
     type: personEntityTypeSchema.optional(),
-    profileJSON: z.unknown(),
+    profileJSON: z.unknown(),     //can be more specific if we have a defined structure for the profile data
   })
   .superRefine((value, ctx) => {
-    if (!value.personEntityId && (!value.name || !value.type)) {
+    const hasEntityId = !!value.personEntityId
+    const hasNameAndType = !!value.name && !!value.type
+
+    if (!hasEntityId && !hasNameAndType) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        path: ['personEntityId'],
-        message: 'Provide personEntityId or provide both name and type.',
+        message: 'Provide personEntityId or both name and type.',
+        path: [],
       })
     }
   })

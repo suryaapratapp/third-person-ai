@@ -1,3 +1,5 @@
+import { th } from 'zod/v4/locales'
+import { NotFoundError } from '../errors/NotFoundError'
 import { prisma } from '../utils/prisma'
 
 export type UploadSessionDto = {
@@ -95,7 +97,7 @@ export async function getUserUploadSessionById(userId: string, id: string): Prom
     },
   })
 
-  if (!session) return null
+  if (!session) throw new NotFoundError('Upload session not found')
   return toUploadSessionDto(session)
 }
 
@@ -125,14 +127,15 @@ export async function createUploadedFileMetadata(params: {
   return toUploadedFileDto(uploadedFile)
 }
 
-export async function getLatestUploadedFilePath(uploadSessionId: string): Promise<string | null> {
+export async function getLatestUploadedFilePath(uploadSessionId: string): Promise<string> {
   const file = await prisma.uploadedFile.findFirst({
     where: { uploadSessionId },
     orderBy: { createdAt: 'desc' },
     select: { storagePath: true },
   })
 
-  return file?.storagePath ?? null
+  if(!file) throw new NotFoundError('Uploaded file not found for the given session')  
+  return file.storagePath
 }
 
 export async function updateUploadSessionStatus(
@@ -149,6 +152,5 @@ export async function updateUploadSessionStatus(
       createdAt: true,
     },
   })
-
   return toUploadSessionDto(session)
 }

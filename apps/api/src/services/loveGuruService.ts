@@ -2,6 +2,7 @@ import OpenAI from 'openai'
 import { prisma } from '../utils/prisma'
 import { env } from '../utils/env'
 import { logAIUsage } from './aiUsageService'
+import { NotFoundError } from '../errors/NotFoundError'
 
 type Persona = 'coach' | 'bestie'
 type Tone = 'gentle' | 'balanced' | 'direct'
@@ -144,7 +145,7 @@ export async function createLoveGuruThreadForUser(params: {
   persona: Persona
   tone: Tone
 }): Promise<LoveGuruThreadDto | null> {
-  const analysis = await prisma.analysisRun.findFirst({
+  const analysis = await prisma.analysisRun.findFirst({   //might create race condition if user creates thread before analysisRun is fully created, but low risk and can be mitigated by UX disabling thread creation until analysisRun is ready
     where: {
       id: params.analysisId,
       uploadSession: {
@@ -154,7 +155,9 @@ export async function createLoveGuruThreadForUser(params: {
     select: { id: true },
   })
 
-  if (!analysis) return null
+  if (!analysis){
+     throw new NotFoundError('Analysis run not found for user')
+  }
 
   const thread = await prisma.loveGuruThread.create({
     data: {
@@ -188,7 +191,7 @@ export async function listLoveGuruThreadsForUser(
     select: { id: true },
   })
 
-  if (!analysis) return null
+  if (!analysis) throw new NotFoundError('Analysis run not found for user')
 
   const threads = await prisma.loveGuruThread.findMany({
     where: { analysisRunId: analysisId },
@@ -208,7 +211,7 @@ export async function listLoveGuruThreadsForUser(
 export async function listThreadMessagesForUser(
   userId: string,
   threadId: string,
-): Promise<LoveGuruMessageDto[] | null> {
+): Promise<LoveGuruMessageDto[]> {
   const thread = await prisma.loveGuruThread.findFirst({
     where: {
       id: threadId,
@@ -221,7 +224,7 @@ export async function listThreadMessagesForUser(
     select: { id: true },
   })
 
-  if (!thread) return null
+  if (!thread) throw new NotFoundError('Thread not found for user')
 
   const messages = await prisma.loveGuruMessage.findMany({
     where: { threadId },
@@ -231,7 +234,7 @@ export async function listThreadMessagesForUser(
       threadId: true,
       role: true,
       content: true,
-      createdAt: true,
+      createdAt: true,    //can add pagination here if threads get very long
     },
   })
 
@@ -242,8 +245,8 @@ export async function createLoveGuruMessageForUser(params: {
   userId: string
   threadId: string
   text: string
-}): Promise<{ userMessage: LoveGuruMessageDto; assistantMessage: LoveGuruMessageDto } | null> {
-  const thread = await prisma.loveGuruThread.findFirst({
+}): Promise<{ userMessage: LoveGuruMessageDto; assistantMessage: LoveGuruMessageDto }> {
+  const thread = await prisma.loveGuruThread.findFirst({     //fetches thread and validates ownership
     where: {
       id: params.threadId,
       analysisRun: {
@@ -272,9 +275,9 @@ export async function createLoveGuruMessageForUser(params: {
     },
   })
 
-  if (!thread) return null
+  if (!thread) throw new NotFoundError('Thread not found for user')
 
-  const userMessage = await prisma.loveGuruMessage.create({
+  const userMessage = await prisma.loveGuruMessage.create({  //creates user messsage
     data: {
       threadId: params.threadId,
       role: 'user',
@@ -289,7 +292,8 @@ export async function createLoveGuruMessageForUser(params: {
     },
   })
 
-  const recentMessages = await prisma.loveGuruMessage.findMany({
+  //fetch converation history
+  const recentMessages = await prisma.loveGuruMessage.findMany({   
     where: { threadId: params.threadId },
     orderBy: { createdAt: 'desc' },
     take: 12,
@@ -299,6 +303,7 @@ export async function createLoveGuruMessageForUser(params: {
     },
   })
 
+  //Ai response generation
   let assistantText = ''
 
   if (env.analysisMode === 'mock') {
@@ -409,3 +414,4 @@ export async function createLoveGuruMessageForUser(params: {
     assistantMessage: toMessageDto(assistantMessage),
   }
 }
+ 

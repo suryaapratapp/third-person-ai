@@ -6,6 +6,7 @@ import {
 } from '../controllers/profileController'
 import { requireProtectedAuth } from '../utils/protectionMiddleware'
 
+//done
 export async function profileRoutes(app: FastifyInstance) {
   app.post('/profiles', {
     preHandler: requireProtectedAuth,

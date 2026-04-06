@@ -4,7 +4,9 @@ export const createMatchesBodySchema = z.object({
   userId: z.string().trim().min(1),
   minScore: z.number().int().min(0).max(100).default(0),
   maxScore: z.number().int().min(0).max(100).default(100),
-  filters: z.record(z.string(), z.unknown()).optional(),
+  filters: z.record(z.string(), z.unknown()).optional(),   //unknown value can be more explicit
+}).refine(data => data.minScore <= data.maxScore, {
+  message: "minScore cannot be greater than maxScore"
 })
 
 export const matchParamsSchema = z.object({

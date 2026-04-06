@@ -5,8 +5,16 @@ import { Job, Queue, Worker } from 'bullmq'
 import { zodResponseFormat } from 'openai/helpers/zod'
 import { z } from 'zod'
 import { pool } from '../utils/db'
-import { env } from '../utils/env'
+import { env, getRedisConnectionOptions } from '../utils/env'
 import { estimateCostUsd, logAIUsage } from './aiUsageLogger'
+
+
+// Takes multiple past “analysis runs” of a person
+// 👉 Aggregates insights
+// 👉 Sends them to OpenAI
+// 👉 Generates a personality profile
+// 👉 Stores it in DB
+// 👉 Logs AI usage (tokens + cost)
 
 type AggregatePersonalityJobData = {
   analysisRunId: string
@@ -21,10 +29,7 @@ type InsightRow = {
   payload: unknown
 }
 
-const redisConnection = new IORedis(env.redisUrl, {
-  maxRetriesPerRequest: null,
-  tls: {},
-})
+const redisConnection = new IORedis(env.redisUrl, getRedisConnectionOptions())
 
 const enqueueQueue = new Queue<AggregatePersonalityJobData>(env.aggregatePersonalityQueueName, {
   connection: redisConnection,
@@ -90,14 +95,14 @@ async function loadAggregateInputs(personEntityId: string): Promise<InsightRow[]
   }>(
     `SELECT
       ar.id AS "analysisRunId",
-      ar.created_at::text AS "analysisCreatedAt",
+      ar.createAt::text AS "analysisCreatedAt",
       i.type AS "insightType",
       i.payload AS "payload"
     FROM analysis_runs ar
     LEFT JOIN insights i ON i.analysis_run_id = ar.id
     WHERE ar.person_entity_id = $1
       AND ar.status = 'COMPLETED'
-    ORDER BY ar.created_at DESC, i.created_at ASC`,
+    ORDER BY ar."createdAt" DESC, i."createdAt" ASC`,
     [personEntityId],
   )
 
@@ -175,7 +180,7 @@ async function processAggregatePersonalityJob(job: Job<AggregatePersonalityJobDa
   const profile = personalityResult.profile
 
   await pool.query(
-    `INSERT INTO personality_profiles (id, user_id, person_entity_id, profile_json, created_at)
+    `INSERT INTO personality_profiles (id, user_id, person_entity_id, profile_json, createdAt)
      VALUES ($1, $2, $3, $4::jsonb, NOW())`,
     [randomUUID(), userId, personEntityId, JSON.stringify(profile)],
   )

@@ -1,6 +1,21 @@
 import path from 'node:path'
 import AdmZip from 'adm-zip'
 
+
+// User Uploads File
+//         ↓
+// Detect Format (smart detection)
+//         ↓
+// Parse (platform-specific logic)
+//         ↓
+// Normalize (canonical format)
+//         ↓
+// Validate (minimum messages, errors)
+//         ↓
+// Convert (DB format)
+//         ↓
+// Generate Report (UX + debugging)
+
 export type SupportedSourceApp =
   | 'whatsapp'
   | 'telegram'
@@ -39,7 +54,7 @@ export type ParsedMessage = {
   text: string
   meta?: Record<string, unknown>
 }
-
+//tracks line that failed parsing
 type ParseIgnoredLine = {
   line: number
   text: string
@@ -100,7 +115,7 @@ export class ParseFailedError extends Error {
   }
 }
 
-type ParseInput = {
+type ParseInput = {   //file is parsed 
   sourceApp: string
   filePath: string
   fileBuffer: Buffer

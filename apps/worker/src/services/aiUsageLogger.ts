@@ -22,7 +22,7 @@ export async function logAIUsage(params: AIUsageLogParams): Promise<void> {
   await pool.query(
     `INSERT INTO ai_usage_logs (
       id, user_id, endpoint, provider, model, operation,
-      input_tokens, output_tokens, total_tokens, estimated_cost_usd, metadata, created_at
+      input_tokens, output_tokens, total_tokens, estimated_cost_usd, metadata, "createdAt"
     ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10::numeric, $11::jsonb, NOW())`,
     [
       randomUUID(),

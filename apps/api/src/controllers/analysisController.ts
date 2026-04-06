@@ -16,6 +16,7 @@ import {
   listAnalysisRunsForUser,
 } from '../services/analysisService'
 import { enqueueRunAnalysisJob } from '../services/queueService'
+import { AppError } from '../errors/AppError'
 
 function formatZodError(error: ZodError) {
   return error.issues.map((issue) => ({
@@ -24,7 +25,11 @@ function formatZodError(error: ZodError) {
   }))
 }
 
-function toPublicAnalysisStatus(status: string) {
+function toPublicAnalysisStatus(status?: string) {
+  if (!status) {
+    return 'PENDING' // or 'UNKNOWN' — choose based on your system
+  }
+
   return status === 'COMPLETED' ? 'READY' : status
 }
 
@@ -177,8 +182,21 @@ export async function listAnalysesController(
     return reply.status(401).send({ error: 'Unauthorized' })
   }
 
+  try{
   const analyses = await listAnalysisRunsForUser(request.authUserId)
   return reply.status(200).send({ analyses })
+  } catch (error) {
+
+    if(error instanceof AppError) {
+      return reply.status(error.statusCode).send({ error: error.message })
+    }
+    request.log.error({
+      requestId: request.id,
+      error,
+      userId: request.authUserId
+    }, 'Failed to list analysis runs')
+    return reply.status(500).send({ error: 'Failed to list analysis runs' })  
+ }
 }
 
 export async function deleteAnalysisController(

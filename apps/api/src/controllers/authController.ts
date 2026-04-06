@@ -27,6 +27,18 @@ function safeErrorMessage(error: unknown, fallback: string): string {
   return message
 }
 
+// async function googleLoginHandler(request, reply) {
+//   const { idToken } = request.body;
+
+//   if (!idToken) {
+//     return reply.status(400).send({ message: "idToken required" });
+//   }
+
+//   const tokens = await authService.googleLogin(idToken);
+
+//   return reply.send(tokens);
+// }
+
 type LoginBody = {
   email: string
   password: string

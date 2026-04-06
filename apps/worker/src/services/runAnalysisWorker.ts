@@ -3,20 +3,32 @@ import { Job, Worker } from 'bullmq'
 import { randomUUID } from 'node:crypto'
 import type { PoolClient } from 'pg'
 import { pool } from '../utils/db'
-import { env } from '../utils/env'
+import { env, getRedisConnectionOptions } from '../utils/env'
 import { runAnalysisPipeline } from './analysisPipeline'
 import { enqueueAggregatePersonalityJob } from './aggregatePersonalityWorker'
 import { estimateCostUsd, logAIUsage } from './aiUsageLogger'
 
+// UPLOAD FILE
+//    ↓
+// parseExportWorker
+//    ↓
+// DB (messages)
+//    ↓
+// runAnalysisWorker  ← (THIS FILE)
+//    ↓
+// AI pipeline
+//    ↓
+// DB (insights)
+//    ↓
+// AI usage logging
+//    ↓
+// aggregatePersonalityWorker (optional)
 type RunAnalysisJobData = {
   analysisRunId: string
   sessionId: string
 }
 
-const redisConnection = new IORedis(env.redisUrl, {
-  maxRetriesPerRequest: null,
-  tls: {},
-})
+const redisConnection = new IORedis(env.redisUrl, getRedisConnectionOptions())
 
 async function setAnalysisStatus(analysisRunId: string, status: string) {
   await pool.query('UPDATE analysis_runs SET status = $1 WHERE id = $2', [status, analysisRunId])
@@ -29,7 +41,7 @@ async function saveInsight(
   payload: Record<string, unknown>,
 ) {
   await client.query(
-    `INSERT INTO insights (id, analysis_run_id, type, payload, created_at)
+    `INSERT INTO insights (id, analysis_run_id, type, payload, "createdAt")
      VALUES ($1, $2, $3, $4::jsonb, NOW())`,
     [randomUUID(), analysisRunId, type, JSON.stringify(payload)],
   )
@@ -64,7 +76,7 @@ async function processRunAnalysisJob(job: Job<RunAnalysisJobData>) {
     const aggregateTarget = await pool.query<{ userId: string; personEntityId: string | null }>(
       `SELECT us.user_id AS "userId", ar.person_entity_id AS "personEntityId"
        FROM analysis_runs ar
-       INNER JOIN upload_sessions us ON us.id = ar.upload_session_id
+       INNER JOIN upload_sessions us ON us.id = ar."uploadSessionId"
        WHERE ar.id = $1`,
       [analysisRunId],
     )
@@ -119,6 +131,7 @@ export const runAnalysisWorker = new Worker<RunAnalysisJobData>(
   async (job) => {
     try {
       await processRunAnalysisJob(job)
+      console.log(`[worker] completed run_analysis for analysisRun ${job.data.analysisRunId}`)
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown analysis worker error'
       await setAnalysisStatus(job.data.analysisRunId, 'FAILED')

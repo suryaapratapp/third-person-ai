@@ -4,17 +4,36 @@ import { randomUUID } from 'node:crypto'
 import IORedis from 'ioredis'
 import { Job, Worker } from 'bullmq'
 import { pool } from '../utils/db'
-import { env } from '../utils/env'
+import { env, getRedisConnectionOptions } from '../utils/env'
 import { parseImportFile, ParseFailedError } from './chatParser'
+
+
+// [User Upload]
+//       ↓
+// [DB: upload_sessions + uploaded_files]
+//       ↓
+// [Queue Job Created]
+//       ↓
+// [Worker Picks Job]
+//       ↓
+// [Read File from Disk]
+//       ↓
+// [Parse File → chatParser]
+//       ↓
+// [DB Transaction]
+//    ├── Delete old messages
+//    ├── Insert new messages
+//    └── Update status
+//       ↓
+// [Write parse-report.json]
+//       ↓
+// [Mark as PARSED / FAILED]
 
 type ParseExportJobData = {
   sessionId: string
 }
 
-const redisConnection = new IORedis(env.redisUrl, {
-  maxRetriesPerRequest: null,
-  tls: {},
-})
+const redisConnection = new IORedis(env.redisUrl, getRedisConnectionOptions())
 
 function resolveStoredPath(storagePath: string): string {
   if (path.isAbsolute(storagePath)) return storagePath
@@ -40,8 +59,8 @@ async function processParseExportJob(job: Job<ParseExportJobData>) {
 
   await setSessionStatus(sessionId, 'PARSING')
 
-  const sessionResult = await pool.query<{ id: string; sourceapp: string }>(
-    'SELECT id, source_app AS "sourceapp" FROM upload_sessions WHERE id = $1',
+  const sessionResult = await pool.query<{ id: string; sourceApp: string }>(
+    'SELECT id, "sourceApp" FROM upload_sessions WHERE id = $1',
     [sessionId],
   )
 
@@ -49,10 +68,10 @@ async function processParseExportJob(job: Job<ParseExportJobData>) {
     throw new Error(`Upload session not found: ${sessionId}`)
   }
 
-  const sourceApp = sessionResult.rows[0].sourceapp
+  const sourceApp = sessionResult.rows[0].sourceApp
 
-  const fileResult = await pool.query<{ storagepath: string }>(
-    'SELECT storage_path AS "storagepath" FROM uploaded_files WHERE upload_session_id = $1 ORDER BY created_at DESC LIMIT 1',
+  const fileResult = await pool.query<{ storagePath: string }>(
+    'SELECT "storagePath" FROM uploaded_files WHERE "uploadSessionId" = $1 ORDER BY "createdAt" DESC LIMIT 1',
     [sessionId],
   )
 
@@ -60,7 +79,7 @@ async function processParseExportJob(job: Job<ParseExportJobData>) {
     throw new Error(`No uploaded file found for session: ${sessionId}`)
   }
 
-  const storagePath = resolveStoredPath(fileResult.rows[0].storagepath)
+  const storagePath = resolveStoredPath(fileResult.rows[0].storagePath)
   const fileBuffer = await readFile(storagePath)
   let parsed: ReturnType<typeof parseImportFile>
   try {
@@ -80,11 +99,11 @@ async function processParseExportJob(job: Job<ParseExportJobData>) {
   const client = await pool.connect()
   try {
     await client.query('BEGIN')
-    await client.query('DELETE FROM messages WHERE upload_session_id = $1', [sessionId])
+    await client.query('DELETE FROM messages WHERE "uploadSessionId" = $1', [sessionId])
 
     for (const message of messages) {
       await client.query(
-        `INSERT INTO messages (id, upload_session_id, timestamp, sender, text, meta, created_at)
+        `INSERT INTO messages (id, "uploadSessionId", timestamp, sender, text, meta, "createdAt")
          VALUES ($1, $2, $3, $4, $5, $6::jsonb, NOW())`,
         [
           randomUUID(),
@@ -112,11 +131,13 @@ async function processParseExportJob(job: Job<ParseExportJobData>) {
   }
 }
 
+//////request is not reaching to this worker
 export const parseExportWorker = new Worker<ParseExportJobData>(
   env.parseExportQueueName,
   async (job) => {
     try {
       await processParseExportJob(job)
+      console.log(`[worker] completed parse_export for session ${job.data.sessionId}`)
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown worker error'
       await setSessionStatus(job.data.sessionId, 'FAILED')
