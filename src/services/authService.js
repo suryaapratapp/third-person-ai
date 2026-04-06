@@ -1,4 +1,4 @@
-import { apiFetch, normalizeApiError } from '../api/client'
+import { apiFetch, normalizeApiError } from '../api/client.js'
 
 const SESSION_KEY = 'tpai:auth:session'
 
