@@ -794,11 +794,3 @@ export async function changePassword(params: {
     },
   })
 }
-
-
-async function googleLogin(idToken: string) {
-  const user = await authenticateWithGoogle(idToken);
-
-  // reuse your existing logic
-  return this.issueTokens(user);
-}
