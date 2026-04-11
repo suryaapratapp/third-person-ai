@@ -142,11 +142,17 @@ export async function uploadSessionFileController(
   }
 
   try {
+    // OLD APPROACH: const saved = await saveMultipartFileLocally(uploadedPart, session.id)
+    // New approach: saveMultipartFileLocally now proxies to centralized Google Drive storage.
     const saved = await saveMultipartFileLocally(uploadedPart, session.id)
 
     const uploadedFile = await createUploadedFileMetadata({
       uploadSessionId: session.id,
       storagePath: saved.storagePath,
+      storageProvider: saved.storageProvider,
+      storageFileId: saved.storageFileId,
+      storageFileUrl: saved.storageFileUrl,
+      originalName: saved.originalName,
       mime: uploadedPart.mimetype,
       size: saved.size,
     })
@@ -159,6 +165,10 @@ export async function uploadSessionFileController(
         id: uploadedFile.id,
         uploadSessionId: uploadedFile.uploadSessionId,
         storagePath: uploadedFile.storagePath,
+        storageProvider: uploadedFile.storageProvider,
+        storageFileId: uploadedFile.storageFileId,
+        storageFileUrl: uploadedFile.storageFileUrl,
+        originalName: uploadedFile.originalName,
         mime: uploadedFile.mime,
         size: uploadedFile.size,
       },
@@ -246,10 +256,16 @@ export async function pasteUploadSessionController(
   const preflight = buildPastePreflight(parsedBody.data.text)
 
   try {
+    // OLD APPROACH: const saved = await savePastedTextLocally(parsedBody.data.text, session.id)
+    // New approach: savePastedTextLocally now proxies to centralized Google Drive storage.
     const saved = await savePastedTextLocally(parsedBody.data.text, session.id)
     const uploadedFile = await createUploadedFileMetadata({
       uploadSessionId: session.id,
       storagePath: saved.storagePath,
+      storageProvider: saved.storageProvider,
+      storageFileId: saved.storageFileId,
+      storageFileUrl: saved.storageFileUrl,
+      originalName: saved.originalName,
       mime: 'text/plain',
       size: saved.size,
     })
@@ -267,6 +283,10 @@ export async function pasteUploadSessionController(
         id: uploadedFile.id,
         uploadSessionId: uploadedFile.uploadSessionId,
         storagePath: uploadedFile.storagePath,
+        storageProvider: uploadedFile.storageProvider,
+        storageFileId: uploadedFile.storageFileId,
+        storageFileUrl: uploadedFile.storageFileUrl,
+        originalName: uploadedFile.originalName,
         mime: uploadedFile.mime,
         size: uploadedFile.size,
       },

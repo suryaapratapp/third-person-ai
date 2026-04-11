@@ -6,6 +6,7 @@ import { Job, Worker } from 'bullmq'
 import { pool } from '../utils/db'
 import { env, getRedisConnectionOptions } from '../utils/env'
 import { parseImportFile, ParseFailedError } from './chatParser'
+import { downloadFileBufferFromGoogleDrive } from './googleDrive'
 
 
 // [User Upload]
@@ -33,11 +34,55 @@ type ParseExportJobData = {
   sessionId: string
 }
 
+type UploadedFileRow = {
+  storagePath: string
+  storageProvider: string | null
+  storageFileId: string | null
+  originalName: string | null
+}
+
 const redisConnection = new IORedis(env.redisUrl, getRedisConnectionOptions())
 
 function resolveStoredPath(storagePath: string): string {
   if (path.isAbsolute(storagePath)) return storagePath
   return path.resolve(process.cwd(), storagePath)
+}
+
+function parseGoogleDriveFileId(storagePath: string): string | null {
+  if (!storagePath.startsWith('gdrive://')) return null
+  const withoutScheme = storagePath.slice('gdrive://'.length)
+  const [fileId] = withoutScheme.split('/')
+  return fileId || null
+}
+
+function parseGoogleDriveFileName(storagePath: string): string | null {
+  if (!storagePath.startsWith('gdrive://')) return null
+  const withoutScheme = storagePath.slice('gdrive://'.length)
+  const slashIndex = withoutScheme.indexOf('/')
+  if (slashIndex < 0 || slashIndex === withoutScheme.length - 1) return null
+  const encoded = withoutScheme.slice(slashIndex + 1)
+  if (!encoded) return null
+  try {
+    return decodeURIComponent(encoded)
+  } catch {
+    return encoded
+  }
+}
+
+function isGoogleDriveStorage(row: UploadedFileRow): boolean {
+  return (
+    row.storageProvider === 'google_drive' ||
+    Boolean(row.storageFileId) ||
+    row.storagePath.startsWith('gdrive://')
+  )
+}
+
+function getParserFilePath(row: UploadedFileRow): string {
+  if (!isGoogleDriveStorage(row)) {
+    return resolveStoredPath(row.storagePath)
+  }
+  const fallbackName = parseGoogleDriveFileName(row.storagePath) || 'downloaded-upload.txt'
+  return row.originalName || fallbackName
 }
 
 function parseReportPathFromStorage(storagePath: string): string {
@@ -51,7 +96,7 @@ async function writeParseReport(storagePath: string, report: unknown): Promise<v
 }
 
 async function setSessionStatus(sessionId: string, status: string) {
-  await pool.query('UPDATE upload_sessions SET status = $1 WHERE id = $2', [status, sessionId])
+  await pool.query('UPDATE "upload_sessions" SET "status" = $1 WHERE "id" = $2', [status, sessionId])
 }
 
 async function processParseExportJob(job: Job<ParseExportJobData>) {
@@ -60,7 +105,7 @@ async function processParseExportJob(job: Job<ParseExportJobData>) {
   await setSessionStatus(sessionId, 'PARSING')
 
   const sessionResult = await pool.query<{ id: string; sourceApp: string }>(
-    'SELECT id, "sourceApp" FROM upload_sessions WHERE id = $1',
+    'SELECT "id", "sourceApp" FROM "upload_sessions" WHERE "id" = $1',
     [sessionId],
   )
 
@@ -70,8 +115,16 @@ async function processParseExportJob(job: Job<ParseExportJobData>) {
 
   const sourceApp = sessionResult.rows[0].sourceApp
 
-  const fileResult = await pool.query<{ storagePath: string }>(
-    'SELECT "storagePath" FROM uploaded_files WHERE "uploadSessionId" = $1 ORDER BY "createdAt" DESC LIMIT 1',
+  const fileResult = await pool.query<UploadedFileRow>(
+    `SELECT
+      "storagePath" AS "storagePath",
+      "storageProvider" AS "storageProvider",
+      "storageFileId" AS "storageFileId",
+      "originalName" AS "originalName"
+     FROM "uploaded_files"
+     WHERE "uploadSessionId" = $1
+     ORDER BY "createdAt" DESC
+     LIMIT 1`,
     [sessionId],
   )
 
@@ -79,18 +132,53 @@ async function processParseExportJob(job: Job<ParseExportJobData>) {
     throw new Error(`No uploaded file found for session: ${sessionId}`)
   }
 
-  const storagePath = resolveStoredPath(fileResult.rows[0].storagePath)
-  const fileBuffer = await readFile(storagePath)
+  const uploadedFile = fileResult.rows[0]
+  const googleDriveMode = isGoogleDriveStorage(uploadedFile)
+  const googleDriveFileId = uploadedFile.storageFileId || parseGoogleDriveFileId(uploadedFile.storagePath)
+  const parserFilePath = getParserFilePath(uploadedFile)
+
+  console.log(
+    `[worker] session ${sessionId} file source detected`,
+    JSON.stringify({
+      storagePath: uploadedFile.storagePath,
+      storageProvider: uploadedFile.storageProvider,
+      hasStorageFileId: Boolean(uploadedFile.storageFileId),
+      googleDriveMode,
+      parserFilePath,
+    }),
+  )
+
+  let fileBuffer: Buffer
+  let localStoragePath: string | null = null
+
+  if (googleDriveMode) {
+    if (!googleDriveFileId) {
+      throw new Error(
+        `Google Drive storage detected but no file id found for session ${sessionId} (storagePath=${uploadedFile.storagePath})`,
+      )
+    }
+    console.log(`[worker] session ${sessionId} downloading from Google Drive fileId=${googleDriveFileId}`)
+    fileBuffer = await downloadFileBufferFromGoogleDrive(googleDriveFileId)
+    console.log(
+      `[worker] session ${sessionId} downloaded ${fileBuffer.length} bytes from Google Drive fileId=${googleDriveFileId}`,
+    )
+  } else {
+    localStoragePath = resolveStoredPath(uploadedFile.storagePath)
+    console.log(`[worker] session ${sessionId} reading local file path=${localStoragePath}`)
+    fileBuffer = await readFile(localStoragePath)
+    console.log(`[worker] session ${sessionId} read ${fileBuffer.length} bytes from local file`)
+  }
+
   let parsed: ReturnType<typeof parseImportFile>
   try {
     parsed = parseImportFile({
       sourceApp,
-      filePath: storagePath,
+      filePath: parserFilePath,
       fileBuffer,
     })
   } catch (error) {
-    if (error instanceof ParseFailedError) {
-      await writeParseReport(storagePath, error.payload)
+    if (error instanceof ParseFailedError && localStoragePath) {
+      await writeParseReport(localStoragePath, error.payload)
     }
     throw error
   }
@@ -99,7 +187,7 @@ async function processParseExportJob(job: Job<ParseExportJobData>) {
   const client = await pool.connect()
   try {
     await client.query('BEGIN')
-    await client.query('DELETE FROM messages WHERE "uploadSessionId" = $1', [sessionId])
+    await client.query('DELETE FROM "messages" WHERE "uploadSessionId" = $1', [sessionId])
 
     for (const message of messages) {
       await client.query(
@@ -116,9 +204,11 @@ async function processParseExportJob(job: Job<ParseExportJobData>) {
       )
     }
 
-    await client.query('UPDATE upload_sessions SET status = $1 WHERE id = $2', ['PARSED', sessionId])
+    await client.query('UPDATE "upload_sessions" SET "status" = $1 WHERE "id" = $2', ['PARSED', sessionId])
     await client.query('COMMIT')
-    await writeParseReport(storagePath, parsed.report)
+    if (localStoragePath) {
+      await writeParseReport(localStoragePath, parsed.report)
+    }
 
     console.log(
       `[worker] session ${sessionId} parsed successfully with ${messages.length} messages`,

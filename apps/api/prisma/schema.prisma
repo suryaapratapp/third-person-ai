@@ -71,8 +71,13 @@ model UploadedFile {
   size            Int
   createdAt       DateTime      @default(now())
   uploadSession   UploadSession @relation(fields: [uploadSessionId], references: [id], onDelete: Cascade)
+  storageProvider String?       @default("google_drive")  
+  storageFileId   String?
+  storageFileUrl  String?
+  originalName    String?
 
   @@index([uploadSessionId])
+  @@index([storageFileId])
   @@map("uploaded_files")
 }
 

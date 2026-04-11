@@ -154,6 +154,9 @@ runAnalysisWorker.on('failed', (job, error) => {
   console.error(`[worker] failed run_analysis for analysisRun ${job.data.analysisRunId}: ${error.message}`)
 })
 
+
+
+
 export async function closeRunAnalysisWorker() {
   await runAnalysisWorker.close()
   await redisConnection.quit()

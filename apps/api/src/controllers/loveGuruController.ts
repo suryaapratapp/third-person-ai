@@ -19,6 +19,7 @@ import {
   listLoveGuruThreadsForUser,
   listThreadMessagesForUser,
 } from '../services/loveGuruService'
+import { enforceRateLimit } from '../services/rateLimitService'
 
 function formatZodError(error: ZodError) {
   return error.issues.map((issue) => ({
@@ -35,7 +36,6 @@ export async function createLoveGuruThreadController(
   if (!request.authUserId) {
     return reply.status(401).send({ error: 'Unauthorized' })
   }
-
   const parsedBody = createLoveGuruThreadBodySchema.safeParse(request.body)
   if (!parsedBody.success) {
     return reply.status(400).send({

@@ -234,22 +234,31 @@ export default function LandingPage() {
   const [showMobileWaitlistCta, setShowMobileWaitlistCta] = useState(false)
 
   useEffect(() => {
-    const node = vibeMatchRef.current
-    if (!node) return undefined
+  const node = vibeMatchRef.current
+  if (!node) return
 
-    const onScroll = () => {
-      const rect = node.getBoundingClientRect()
-      setShowMobileWaitlistCta(rect.top <= 72)
-    }
+  let ticking = false
 
-    onScroll()
-    window.addEventListener('scroll', onScroll, { passive: true })
-    window.addEventListener('resize', onScroll)
-    return () => {
-      window.removeEventListener('scroll', onScroll)
-      window.removeEventListener('resize', onScroll)
+  const onScroll = () => {
+    if (!ticking) {
+      window.requestAnimationFrame(() => {
+        const rect = node.getBoundingClientRect()
+        setShowMobileWaitlistCta(rect.top <= 72)
+        ticking = false
+      })
+      ticking = true
     }
-  }, [])
+  }
+
+  onScroll()
+  window.addEventListener('scroll', onScroll, { passive: true })
+  window.addEventListener('resize', onScroll)
+
+  return () => {
+    window.removeEventListener('scroll', onScroll)
+    window.removeEventListener('resize', onScroll)
+  }
+}, [])
 
   const onJoinWaitlist = () => {
     if (!isAuthenticated || !user?.email) {
@@ -271,8 +280,7 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen flex flex-col">
     <main className="px-4  pt-8 sm:px-6 lg:px-8">
-      <section className="relative w-full min-h-[90vh] flex items-center justify-center px-4">
-
+<section className="relative w-full min-h-[90vh] flex items-start justify-center pt-20 px-4">
   {/* Subtle background glow */}
   <div className="pointer-events-none absolute inset-0 -z-10">
     <div className="absolute left-1/2 top-1/3 h-72 w-72 -translate-x-1/2 rounded-full bg-cyan-400/10 blur-3xl" />
@@ -283,23 +291,23 @@ export default function LandingPage() {
   <div className="mx-auto max-w-4xl text-center">
 
     {/* Product Name */}
-    <h1 className="font-serif tracking-tight text-white">
-      <span className="block text-5xl font-semibold bg-gradient-to-r from-cyan-300 to-violet-300 bg-clip-text text-transparent sm:text-6xl md:text-7xl lg:text-8xl " >
+    <h1 className="tracking-tight text-white font-['Poppins'] font-light">
+      <span className="block text-5xl font-bold bg-gradient-to-r from-cyan-300 to-violet-300 bg-clip-text text-transparent sm:text-6xl md:text-7xl lg:text-8xl " >
         THIRD PERSON
       </span>
     </h1>
 
     {/* Subtext */}
-    <p className="mt-6 text-base sm:text-lg md:text-xl text-slate-300 leading-relaxed max-w-2xl mx-auto">
+    {/* <p className="mt-6 text-base sm:text-lg md:text-xl text-slate-300 leading-relaxed max-w-2xl mx-auto">
       An AI that helps you step outside your own perspective — 
       understand your relationships, decode patterns, and make clearer decisions.
-    </p>
+    </p> */}
 
     {/* Optional subtle divider */}
     <div className="mt-8 h-px w-24 mx-auto bg-gradient-to-r from-transparent via-white/40 to-transparent" />
 
     {/* Tagline (emotional layer) */}
-    <p className="mt-6 text-sm sm:text-base text-cyan-300/90">
+    <p className="mt-6 text-sm sm:text-base">
       Clarity in chaos. Perspective in moments that matter.
     </p>
 
@@ -310,17 +318,17 @@ export default function LandingPage() {
 
     {/* LEFT CONTENT */}
     <div className="flex-1 text-center lg:text-left">
-      <p className="text-xs font-semibold uppercase tracking-[0.25em] text-cyan-100/85">
+      {/* <p className="text-xs font-semibold uppercase tracking-[0.25em] text-cyan-100/85">
         Third Person AI
-      </p>
+      </p> */}
 
       {/* Heading */}
-      <h1 className="mt-3 leading-tight">
+      <h1 className="mt-3 leading-tight flex flex-col gap-3">
         <span className="block text-4xl font-semibold text-white sm:text-5xl lg:text-6xl">
           See your relationship
         </span>
         <span className="block text-2xl font-medium text-cyan-300 sm:text-4xl lg:text-5xl">
-          from a third perspective
+          From a third perspective
         </span>
       </h1>
 
@@ -383,14 +391,15 @@ export default function LandingPage() {
 
   </div>
 </section>
+{/* How it works*/}
       <section
   id="how-it-works"
   className="relative mx-auto min-h-screen max-w-7xl px-4 py-16 flex flex-col justify-center"
 >
   {/* Background glow (modern feel) */}
-  <div className="pointer-events-none absolute inset-0 -z-10">
+  {/* <div className="pointer-events-none absolute inset-0 -z-10">
     <div className="absolute left-1/2 top-20 h-72 w-72 -translate-x-1/2 rounded-full bg-cyan-400/10 blur-3xl" />
-  </div>
+  </div> */}
 
   {/* Section Title */}
   <div className="text-center">
@@ -447,12 +456,13 @@ export default function LandingPage() {
   </div>
 </section>
 
+{/* What you get*/ }
       <section className="relative mx-auto mt-14 min-h-screen max-w-7xl px-4 py-16 flex flex-col justify-center">
   
   {/* Subtle background glow */}
-  <div className="pointer-events-none absolute inset-0 -z-10">
+  {/* <div className="pointer-events-none absolute inset-0 -z-10">
     <div className="absolute left-1/2 top-24 h-72 w-72 -translate-x-1/2 rounded-full bg-violet-400/10 blur-3xl" />
-  </div>
+  </div> */}
 
   {/* Title */}
   <div className="text-center">
@@ -501,12 +511,13 @@ export default function LandingPage() {
 
 </section>
 
+{/*When to use */}
       <section className="relative mx-auto mt-14 min-h-screen max-w-7xl px-4 py-16 flex flex-col justify-center">
 
   {/* Background glow */}
-  <div className="pointer-events-none absolute inset-0 -z-10">
+  {/* <div className="pointer-events-none absolute inset-0 -z-10">
     <div className="absolute left-1/2 top-24 h-72 w-72 -translate-x-1/2 rounded-full bg-rose-400/10 blur-3xl" />
-  </div>
+  </div> */}
 
   {/* Title */}
   <div className="text-center">
@@ -554,12 +565,13 @@ export default function LandingPage() {
 
 </section>
 
+{/*Persona */}
      <section className="relative mx-auto mt-14 min-h-screen max-w-7xl px-4 py-16 flex flex-col justify-center">
 
   {/* Background glow */}
-  <div className="pointer-events-none absolute inset-0 -z-10">
+  {/* <div className="pointer-events-none absolute inset-0 -z-10">
     <div className="absolute left-1/2 top-24 h-72 w-72 -translate-x-1/2 rounded-full bg-violet-400/10 blur-3xl" />
-  </div>
+  </div> */}
 
   {/* Title */}
   <div className="text-center">
@@ -575,7 +587,7 @@ export default function LandingPage() {
     {personas.map((persona, index) => (
       <GlassCard
         key={persona.title}
-        className="group relative flex h-[260px] sm:h-[300px] items-center justify-between overflow-hidden border-white/15 bg-slate-950/40 p-6 sm:p-8
+        className="group relative flex h-[260px] sm:h-[300px] items-center justify-between overflow-visible border-white/15 bg-slate-950/40 p-6 sm:p-8
         transition-all duration-300 hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)]"
       >
 
@@ -604,15 +616,29 @@ export default function LandingPage() {
         <div className="relative flex h-full w-[40%] items-center justify-center">
           
           {/* fake avatar */}
-          <div
-            className="relative h-28 w-28 sm:h-36 sm:w-36 rounded-full bg-gradient-to-br from-violet-400/40 to-rose-400/40
-            blur-[1px] transition-all duration-300
-            group-hover:scale-110 group-hover:-translate-y-2"
+          <div className="relative h-28 w-28 sm:h-36 sm:w-36 transition-all duration-300 group-hover:scale-150 group-hover:-translate-y-2">
+
+           <img
+            src={index === 0 ? "/coach-removebg-preview.png" : "/bestie-removebg-preview.png"}
+            alt={persona.title}
+            className="
+              h-full w-full object-contain
+              transform
+
+              scale-[1.3] sm:scale-[1.5]   /* smaller on mobile */
+
+              transition-transform duration-500 ease-out
+
+              group-hover:scale-[1.5] sm:group-hover:scale-[1.7]
+              group-hover:-translate-y-2 sm:group-hover:-translate-y-4
+            "
           />
 
-          {/* glow behind avatar */}
-          <div className="absolute h-32 w-32 sm:h-40 sm:w-40 rounded-full bg-white/10 blur-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-        </div>
+         </div>
+
+         {/* glow behind avatar */}
+           {/* <div className="absolute h-32 w-32 sm:h-40 sm:w-40 rounded-full bg-white/10 blur-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100" /> */}
+         </div>
 
         {/* subtle hover glow */}
         <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
@@ -625,12 +651,13 @@ export default function LandingPage() {
 
 </section>
 
+{/*LOve guru */}
       <section className="relative mx-auto mt-14 min-h-screen max-w-7xl px-4 py-16 flex flex-col justify-center">
 
   {/* Background glow */}
-  <div className="pointer-events-none absolute inset-0 -z-10">
+  {/* <div className="pointer-events-none absolute inset-0 -z-10">
     <div className="absolute left-1/2 top-20 h-72 w-72 -translate-x-1/2 rounded-full bg-cyan-400/10 blur-3xl" />
-  </div>
+  </div> */}
 
   {/* Title */}
   <div className="text-center">
@@ -641,7 +668,7 @@ export default function LandingPage() {
          <span className="bg-gradient-to-r from-cyan-300 to-violet-300 bg-clip-text text-transparent text-5xl sm:text-6xl lg:text-7xl">Love Guru</span>
         </>
       }
-      subtitle="Your clarity copilot for partner, friend, family, manager, or anyone you are trying to understand better."
+      subtitle="Love Guru helps you read relationship patterns and choose your next move with more clarity and less noise."
     />
   </div>
 
@@ -654,10 +681,6 @@ export default function LandingPage() {
       <h3 className="text-xl sm:text-2xl font-semibold text-white">
         {/* Built for real dynamics, not just romance */}
       </h3>
-
-      <p className="mt-3 text-5xl sm:text-5xl lg:text-2xl text-slate-100/82 sm:text-base bg-gradient-to-r from-cyan-300 to-violet-300 bg-clip-text text-transparent">
-        Love Guru helps you read relationship patterns and choose your next move with more clarity and less noise.
-      </p>
 
       {/* Persona selector */}
       <div className="mt-6 rounded-2xl border border-white/15 bg-slate-900/60 p-4">
@@ -728,12 +751,13 @@ export default function LandingPage() {
   </div>
 </section>
 
+{/* How We Generate */}
 <section className="relative w-full min-h-screen flex items-center">
 
   {/* Background glow */}
-  <div className="pointer-events-none absolute inset-0 -z-10">
+  {/* <div className="pointer-events-none absolute inset-0 -z-10">
     <div className="absolute left-1/2 top-24 h-72 w-72 -translate-x-1/2 rounded-full bg-amber-400/10 blur-3xl" />
-  </div>
+  </div> */}
 
   {/* Inner container */}
   <div className="mx-auto w-full max-w-7xl px-4 py-16">

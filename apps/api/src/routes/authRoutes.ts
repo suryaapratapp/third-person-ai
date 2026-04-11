@@ -33,9 +33,11 @@ import {
   successResponseSchema,
 } from '../schemas/authSchemas'
 import { requireProtectedAuth } from '../utils/protectionMiddleware'
+import { rateLimitMiddleware } from '../middleware/rateLimitMiddleware'
 
 export async function authRoutes(app: FastifyInstance) {
   app.post('/auth/register', {
+    preHandler: rateLimitMiddleware,
     schema: {
       body: authRegisterBodySchema,
       response: {
@@ -56,6 +58,7 @@ export async function authRoutes(app: FastifyInstance) {
   })
 
   app.post('/auth/verify-otp', {
+    preHandler: rateLimitMiddleware,
     schema: {
       body: authVerifyOtpBodySchema,
       response: {
@@ -66,6 +69,7 @@ export async function authRoutes(app: FastifyInstance) {
   })
 
   app.post('/auth/resend-otp', {
+    preHandler: rateLimitMiddleware,
     schema: {
       body: authResendOtpBodySchema,
       response: {
@@ -86,6 +90,7 @@ export async function authRoutes(app: FastifyInstance) {
   })
 
   app.post('/auth/login', {
+    preHandler: rateLimitMiddleware,
     schema: {
       body: authLoginBodySchema,
       response: {
@@ -96,6 +101,7 @@ export async function authRoutes(app: FastifyInstance) {
   })
 
   app.post('/auth/forgot-password', {
+    preHandler: rateLimitMiddleware,
     schema: {
       body: authForgotPasswordBodySchema,
       response: {
@@ -106,6 +112,7 @@ export async function authRoutes(app: FastifyInstance) {
   })
 
   app.post('/auth/reset-password', {
+    preHandler: rateLimitMiddleware,
     schema: {
       body: authResetPasswordBodySchema,
       response: {
@@ -116,7 +123,7 @@ export async function authRoutes(app: FastifyInstance) {
   })
 
   app.post('/auth/change-password', {
-    preHandler: requireProtectedAuth,
+    preHandler: [requireProtectedAuth,rateLimitMiddleware],
     schema: {
       body: authChangePasswordBodySchema,
       response: {
@@ -137,7 +144,7 @@ export async function authRoutes(app: FastifyInstance) {
   })
 
   app.post('/auth/logout', {
-    preHandler: requireProtectedAuth,
+    preHandler: [requireProtectedAuth, rateLimitMiddleware],
     schema: {
       response: {
         200: successResponseSchema,
@@ -147,7 +154,7 @@ export async function authRoutes(app: FastifyInstance) {
   })
 
   app.get('/auth/me', {
-    preHandler: requireProtectedAuth,
+    preHandler: [requireProtectedAuth,rateLimitMiddleware],
     schema: {
       response: {
         200: meResponseSchema,

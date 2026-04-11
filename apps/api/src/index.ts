@@ -12,6 +12,7 @@ import { profileRoutes } from './routes/profileRoutes'
 import { uploadSessionRoutes } from './routes/uploadSessionRoutes'
 import { env } from './utils/env'
 
+
 export async function buildServer() {
   const app = Fastify({
     logger: {
@@ -133,3 +134,4 @@ async function startServer() {
 if (require.main === module) {
   void startServer()
 }
+

@@ -1,4 +1,3 @@
-import { th } from 'zod/v4/locales'
 import { NotFoundError } from '../errors/NotFoundError'
 import { prisma } from '../utils/prisma'
 
@@ -13,6 +12,10 @@ export type UploadedFileDto = {
   id: string
   uploadSessionId: string
   storagePath: string
+  storageProvider: string | null
+  storageFileId: string | null
+  storageFileUrl: string | null
+  originalName: string | null
   mime: string
   size: number
   createdAt: string
@@ -36,6 +39,10 @@ function toUploadedFileDto(value: {
   id: string
   uploadSessionId: string
   storagePath: string
+  storageProvider: string | null
+  storageFileId: string | null
+  storageFileUrl: string | null
+  originalName: string | null
   mime: string
   size: number
   createdAt: Date
@@ -44,6 +51,10 @@ function toUploadedFileDto(value: {
     id: value.id,
     uploadSessionId: value.uploadSessionId,
     storagePath: value.storagePath,
+    storageProvider: value.storageProvider,
+    storageFileId: value.storageFileId,
+    storageFileUrl: value.storageFileUrl,
+    originalName: value.originalName,
     mime: value.mime,
     size: value.size,
     createdAt: value.createdAt.toISOString(),
@@ -104,6 +115,10 @@ export async function getUserUploadSessionById(userId: string, id: string): Prom
 export async function createUploadedFileMetadata(params: {
   uploadSessionId: string
   storagePath: string
+  storageProvider?: string
+  storageFileId?: string
+  storageFileUrl?: string
+  originalName?: string
   mime: string
   size: number
 }): Promise<UploadedFileDto> {
@@ -111,6 +126,10 @@ export async function createUploadedFileMetadata(params: {
     data: {
       uploadSessionId: params.uploadSessionId,
       storagePath: params.storagePath,
+      storageProvider: params.storageProvider ?? null, // this is line 129
+      storageFileId: params.storageFileId ?? null,
+      storageFileUrl: params.storageFileUrl ?? null,
+      originalName: params.originalName ?? null,
       mime: params.mime,
       size: params.size,
     },
@@ -118,6 +137,10 @@ export async function createUploadedFileMetadata(params: {
       id: true,
       uploadSessionId: true,
       storagePath: true,
+      storageProvider: true,
+      storageFileId: true,
+      storageFileUrl: true,
+      originalName: true,
       mime: true,
       size: true,
       createdAt: true,

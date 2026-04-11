@@ -2,7 +2,6 @@ import type { FastifyReply, FastifyRequest } from 'fastify'
 import { ZodError } from 'zod'
 import { createProfileBodySchema, profileParamsSchema } from '../schemas/profileSchemas'
 import { createProfileForUser, getProfileForUser, listProfilesForUser } from '../services/profileService'
-import { ca } from 'zod/v4/locales'
 import { AppError } from '../errors/AppError'
 
 function formatZodError(error: ZodError) {

@@ -22,6 +22,13 @@ function getPolicy(endpoint: string): EndpointPolicy {
     }
   }
 
+  if (endpoint.startsWith('/admin')) {
+  return {
+    maxRequests: env.rateLimitMaxRequests * 5, 
+    windowMs: env.rateLimitWindowMs,
+  }
+}
+
   return {
     maxRequests: env.rateLimitMaxRequests,
     windowMs: env.rateLimitWindowMs,
