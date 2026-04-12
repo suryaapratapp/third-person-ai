@@ -1,7 +1,6 @@
 import { Prisma } from '@prisma/client'
 import { prisma } from '../utils/prisma'
 
-//yet to study
 type Filters = Record<string, unknown> | undefined
 
 type MatchListItem = {

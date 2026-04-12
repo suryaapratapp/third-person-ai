@@ -2,9 +2,7 @@ import { Queue } from 'bullmq'
 import IORedis from 'ioredis'
 import { env } from '../utils/env'
 
-// API → enqueue job → return fast
-// Worker → process in background
-//data recieved by parse jobs , it should always contain session id
+
 export type ParseExportJobData = {
   sessionId: string
 }

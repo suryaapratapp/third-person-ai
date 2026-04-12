@@ -28,15 +28,6 @@ export async function uploadToGoogleDrive(
     throw new Error('Google Drive did not return a file id')
   }
 
-  // OLD APPROACH: this made files public to anyone. We keep auth-only access now.
-  // await drive.permissions.create({
-  //   fileId,
-  //   requestBody: {
-  //     role: "reader",
-  //     type: "anyone",
-  //   },
-  // });
-
   return {
     fileId,
     url: `https://drive.google.com/drive/uc?id=${fileId}`,
