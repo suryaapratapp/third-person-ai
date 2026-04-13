@@ -280,73 +280,36 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen flex flex-col">
     <main className="px-4  pt-8 sm:px-6 lg:px-8">
- <section className="relative w-full flex items-center justify-center py-16 sm:py-20">
-      
-      {/* Background Glow Effects */}
-      <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-        <div className="absolute left-1/2 top-1/3 h-72 w-72 -translate-x-1/2 rounded-full bg-cyan-400/20 blur-3xl" />
-        <div className="absolute right-1/4 bottom-1/4 h-72 w-72 rounded-full bg-violet-500/20 blur-3xl" />
-        <div className="absolute left-1/4 bottom-1/3 h-72 w-72 rounded-full bg-pink-400/10 blur-3xl" />
-      </div>
+ <section className="relative w-full min-h-[90vh] flex items-center justify-center px-4">
+   {/* Subtle background glow */}
+    <div className="pointer-events-none absolute inset-0 -z-10">
+       <div className="absolute left-1/2 top-1/3 h-72 w-72 -translate-x-1/2 rounded-full bg-cyan-400/10 blur-3xl" />
+       
+        <div className="absolute right-1/4 bottom-1/4 h-72 w-72 rounded-full bg-violet-400/10 blur-3xl" />
+         </div>
+         
+          {/* Content */} 
+          <div className="mx-auto max-w-4xl text-center">
+             {/* Product Name */} 
+             <h1 className="tracking-tight text-white font-['Poppins'] font-light">
+               <span className="block text-5xl font-bold bg-gradient-to-r from-cyan-300 to-violet-300 bg-clip-text text-transparent sm:text-6xl md:text-7xl lg:text-8xl " >
+                 THIRD PERSON </span> 
+                 </h1> 
+                 {/* Subtext */} {/* <p className="mt-6 text-base sm:text-lg md:text-xl text-slate-300 leading-relaxed max-w-2xl mx-auto"> An AI that helps you step outside your own perspective — understand your relationships, decode patterns, and make clearer decisions. </p> */}
+                  {/* Optional subtle divider */}
+                  <div className="mt-8 h-px w-24 mx-auto bg-gradient-to-r from-transparent via-white/40 to-transparent" /> {/* Tagline (emotional layer) */} 
+                  <p className="mt-6 text-sm sm:text-base"> Clarity in chaos. Perspective in moments that matter.
+                  </p> 
+            </div> 
+      </section>
+    <section className="mx-auto max-w-7xl px-4 py-12 sm:py-16">
+        <div className="flex flex-col items-center gap-8 sm:gap-10 lg:flex-row lg:items-center">
 
-      {/* Content */}
-      <div className="mx-auto max-w-4xl text-center">
-        
-        {/* Product Name */}
-        <h1 className="tracking-tight font-['Poppins']">
-          <span className="block text-4xl font-bold bg-gradient-to-r from-cyan-300 to-violet-300 bg-clip-text text-transparent sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl">
-            THIRD PERSON
-          </span>
-        </h1>
-
-        {/* Tagline */}
-        <p className="mt-6 text-base text-slate-300 sm:text-lg md:text-xl leading-relaxed max-w-2xl mx-auto">
-          An AI that helps you step outside your own perspective — understand
-          relationships, decode patterns, and make clearer decisions.
-        </p>
-
-        {/* Emotional Layer */}
-        <p className="mt-4 text-sm text-slate-400 sm:text-base">
-          Clarity in chaos. Perspective in moments that matter.
-        </p>
-
-        {/* Divider */}
-        <div className="mt-8 h-px w-24 mx-auto bg-gradient-to-r from-transparent via-white/40 to-transparent" />
-
-        {/* Call-to-Action Buttons */}
-        <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-        <Link
-          to="/chat-analysis"
-          className="inline-flex items-center justify-center rounded-full 
-          border border-white/20 px-6 py-3 text-sm font-semibold text-white
-          transition-all duration-300
-          bg-cyan-700
-          hover:bg-white/10 hover:shadow-[0_0_20px_rgba(255,255,255,0.6)]"
-        >
-          Analyze your chats
-        </Link>
-
-        <Link
-          to="/vibe-check"
-          className="inline-flex items-center justify-center rounded-full 
-          border border-white/20 px-6 py-3 text-sm font-semibold text-white
-          transition-all duration-300
-          hover:bg-white/10 hover:shadow-[0_0_20px_rgba(255,255,255,0.6)]"
-        >
-          Vibe Check
-        </Link>
-     
-        </div>
-      </div>
-    </section>
-      <section className="mx-auto max-w-7xl px-4 py-12 sm:py-16">
-  <div className="flex flex-col items-center gap-8 sm:gap-10 lg:flex-row lg:items-center">
-
-    {/* LEFT CONTENT */}
-    <div className="flex-1 text-center lg:text-left">
-      {/* <p className="text-xs font-semibold uppercase tracking-[0.25em] text-cyan-100/85">
-        Third Person AI
-      </p> */}
+        {/* LEFT CONTENT */}
+        <div className="flex-1 text-center lg:text-left">
+         {/* <p className="text-xs font-semibold uppercase tracking-[0.25em] text-cyan-100/85">
+           Third Person AI
+         </p> */}
 
       {/* Heading */}
       <h1 className="mt-3 leading-tight flex flex-col gap-3">
