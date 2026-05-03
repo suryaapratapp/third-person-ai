@@ -1,0 +1,443 @@
+Third Person AI - System Architecture Guide and Scale Plan
+Generated after a full repository read-through
+Date: 2026-04-12
+
+========================================================================
+1) Executive Summary
+========================================================================
+
+You currently have a solid three-layer architecture:
+
+1. Frontend (Vite + React + Tailwind) at repo root
+2. API (Fastify + Prisma + Postgres) at apps/api
+3. Worker (BullMQ + Redis + Prisma) at apps/worker
+
+The system already supports:
+- Auth (register/login/refresh/logout/me)
+- Upload sessions (file + paste)
+- Parsing pipeline (worker-driven)
+- Analysis runs + insights
+- Love Guru threads/messages
+- Demo AI mode on frontend
+- Personality profiles + matchmaking API scaffolding on backend
+
+This is a good foundation. The fastest path to a smoother and faster system now is:
+- Consolidate contracts and ownership boundaries
+- Move all critical analysis paths to backend-owned async jobs
+- Add deterministic “derived features” layer for personality/match
+- Add cache + pagination + idempotency + stronger observability
+
+========================================================================
+2) Current Architecture (as implemented)
+========================================================================
+
+2.1 Frontend architecture
+-------------------------
+
+Core:
+- React Router app with protected routes and auth-aware navigation
+- Dark premium UI system with reusable components/modals
+- Service layer for API calls + demo mode orchestration
+
+Key frontend modules:
+- src/App.jsx + layout shell + route guards
+- src/context/AuthContext.jsx (session hydration + auth state)
+- src/api/client.js (fetch wrapper, token/refresh/error normalization)
+- src/config/runtime.ts (runtime env centralization)
+- src/services/* for domain-level operations:
+  - authService
+  - analysisServiceApi
+  - uploadSessionServiceApi
+  - loveGuruServiceApi
+  - preferences/demo/privacy services
+
+Important note:
+- UI still keeps some localStorage-driven behavior (preferences, demo flows, some fallback states), while production data path is API-first.
+- This is acceptable short-term, but should be reduced for consistency.
+
+2.2 API architecture
+--------------------
+
+Pattern:
+- Fastify route -> controller -> service -> Prisma
+- Validation with Zod in route/schema layer
+- Auth/protection middleware available
+- CORS + env-driven config
+
+Main backend domains:
+- Auth: register/login/refresh/logout/me (+ verification/password flows)
+- Upload sessions: create/list/get/upload/paste
+- Analyses: trigger + status + insights retrieval
+- Love Guru: threads + message exchange
+- Profiles/matches/admin endpoints
+- Health/ready endpoints + production env handling
+
+2.3 Worker architecture
+-----------------------
+
+Worker responsibilities:
+- parse_export job:
+  - parse uploads/paste into normalized message rows
+  - update upload_session status
+- run_analysis job:
+  - preprocess messages
+  - run mock/live analysis path
+  - persist insights
+  - mark status transitions
+- aggregate_personality job:
+  - combine analyses into personality profile payloads
+
+This async split is correct and production-friendly.
+
+2.4 Data architecture (Prisma/Postgres)
+---------------------------------------
+
+Core entities (already present):
+- users
+- upload_sessions
+- uploaded_files
+- messages
+- analysis_runs
+- insights
+- love_guru_threads
+- love_guru_messages
+- person_entities
+- personality_profiles
+
+Logical lifecycle:
+1) user -> upload_session
+2) upload/paste -> parse_export job -> messages
+3) analyze -> run_analysis job -> insights
+4) dashboard/love-guru consume insights + thread history
+5) personality aggregation enriches long-term profile
+6) matchmaking queries profile-level compatibility
+
+========================================================================
+3) Current Strengths
+========================================================================
+
+You are already doing several things right:
+
+- Separation of UI/API/worker concerns
+- Queue-based async processing (avoids blocking API)
+- Structured storage of insights
+- Route protection and token flow
+- Demo mode for zero-cost iteration
+- Production hygiene started (runtime config, verify-build scripts, CORS/env patterns)
+
+This is beyond MVP-level architecture and is a strong base for scale.
+
+========================================================================
+4) Current Friction Points (what can make it feel slow/fragile)
+========================================================================
+
+4.1 Contract drift risk
+-----------------------
+- Multiple JSON shapes can exist:
+  - frontend mock/demo insights
+  - backend mock/live insights
+  - dashboard mapper expectations
+- If one changes without adapter updates, UI breaks or silently degrades.
+
+4.2 Split source-of-truth
+-------------------------
+- Some features use API data, some still use localStorage variants.
+- This can create stale state, inconsistent Recaps, or mixed demo/real records.
+
+4.3 Polling pressure
+--------------------
+- Upload/analysis polling can cause rate-limit pressure if backoff/cancel isn’t strict.
+- Better status orchestration is needed to prevent 401/429 cascades.
+
+4.4 Parser variance
+-------------------
+- Real-world export formats vary heavily.
+- If parser confidence/error reporting is weak, users hit “cannot parse” dead-ends.
+
+4.5 Personality/match readiness gap
+-----------------------------------
+- Endpoints exist, but stable feature vectors + scoring versioning + explanation strategy need tightening before quality matchmaking.
+
+========================================================================
+5) Best Target Architecture (next 2-4 sprints)
+========================================================================
+
+Use this target architecture model:
+
+Layer A: Presentation (Frontend)
+- Pure rendering + user actions
+- No business logic beyond view-level state
+- Single API service interfaces with typed contracts
+
+Layer B: Orchestration (API)
+- Auth, authorization, request validation, idempotency
+- Job scheduling + status endpoints
+- Lightweight response mappers
+
+Layer C: Intelligence Pipeline (Worker)
+- Parsing
+- Feature extraction
+- Analysis generation
+- Personality aggregation
+- Match scoring
+
+Layer D: Data + Caching
+- Postgres as source of truth
+- Redis for queues + short-lived status cache
+- Optional materialized views for heavy ranking queries
+
+========================================================================
+6) Concrete Plan to Make the System Smoother and Faster
+========================================================================
+
+Phase 1 - Contract unification (highest ROI)
+--------------------------------------------
+1) Create shared contracts package (or shared folder):
+   - AnalysisResult schema
+   - Dashboard payload schema
+   - LoveGuru context schema
+   - ParseReport schema
+2) Enforce schema at API boundary and frontend adapter boundary.
+3) Version analysis payload:
+   - insightSchemaVersion: "v1"
+   - Never break existing UI when evolving.
+
+Impact:
+- Fewer regressions
+- Faster UI changes
+- Safe rollout for personality cards
+
+Phase 2 - Data ownership cleanup
+--------------------------------
+1) Define canonical ownership:
+   - API owns analyses, insights, threads, sessions
+   - Frontend localStorage owns only UI preferences:
+     theme, privacy display toggles, onboarding intent, demo consent
+2) Remove localStorage as fallback for production entities.
+3) Keep demo artifacts namespaced clearly:
+   - demo:* keys only
+
+Impact:
+- No mixed or ghost records
+- Cleaner Recaps/history behavior
+
+Phase 3 - Performance and reliability
+-------------------------------------
+1) Polling improvements:
+   - exponential backoff + jitter
+   - max attempts + cancel on unmount/route change
+   - 401 immediate stop + redirect
+   - 429 backoff message (no spam)
+2) Add idempotency keys for analysis trigger endpoint.
+3) Add cursor pagination for Recaps and Love Guru threads.
+4) Add DB indexes:
+   - analysis_runs(uploadSessionId, createdAt)
+   - insights(analysisRunId, type)
+   - messages(uploadSessionId, timestamp)
+   - love_guru_messages(threadId, createdAt)
+
+Impact:
+- Faster dashboard/history loads
+- Lower backend stress under repeated clicks/retries
+
+Phase 4 - Observability and debugging
+-------------------------------------
+1) Standard requestId across API + worker logs.
+2) Add pipeline timing metrics:
+   - parse_duration_ms
+   - analysis_duration_ms
+   - queue_wait_ms
+3) Add structured error taxonomy:
+   - ParseFailed
+   - AnalysisFailed
+   - RateLimited
+   - Unauthorized
+4) Show user-safe error messages while storing full internal reason server-side.
+
+Impact:
+- Faster issue diagnosis
+- Better user trust (clear errors, less “unknown failure”)
+
+========================================================================
+7) Personality Cards Architecture (next task prep)
+========================================================================
+
+Goal:
+Generate stable, explainable personality cards from multiple analyses over time.
+
+Recommended model:
+
+7.1 Feature extraction layer (worker)
+-------------------------------------
+For each analysis/session, derive normalized features:
+- response_latency_stats
+- initiative_ratio
+- sentiment_volatility
+- conflict_recovery_signal
+- affirmation_frequency
+- topic_distribution
+- humor_density
+- message_length_distribution
+
+Store in structured JSON with schema version.
+
+7.2 Personality snapshot strategy
+---------------------------------
+Do NOT overwrite a single profile blindly.
+Instead:
+- personality_profiles table stores snapshots over time
+- include:
+  - sourceAnalysisIds[]
+  - computedAt
+  - profileVersion
+  - confidence score
+- build “current card” as latest stable snapshot
+
+7.3 Explainability design
+-------------------------
+Every personality card trait should carry:
+- trait label
+- confidence (low/medium/high)
+- why this appears (feature-level explanation)
+- “not a diagnosis” disclaimer
+
+This keeps the product credible and safe.
+
+========================================================================
+8) Matchmaking Architecture (next task prep)
+========================================================================
+
+8.1 Match pipeline
+------------------
+Stage 1: Candidate retrieval (fast filter)
+- hard filters:
+  - intent/mode (dating/friend)
+  - locale/language
+  - activity threshold
+
+Stage 2: Compatibility scoring
+- weighted score from personality + communication features:
+  - rhythm compatibility
+  - emotional consistency fit
+  - conflict style complementarity
+  - humor/topic overlap
+- produce:
+  - overall match score
+  - sub-scores
+  - explanation bullets
+
+Stage 3: Safety/business rules
+- block-list checks
+- freshness checks
+- minimum confidence threshold
+
+8.2 Keep it deterministic first
+-------------------------------
+For launch:
+- Use deterministic feature-based scoring (no expensive AI inference per match request).
+- AI can generate explanation copy after score is computed.
+
+8.3 Matching data contracts
+---------------------------
+Define and freeze:
+- MatchCandidate
+- MatchBreakdown
+- MatchExplanation
+- MatchEvidenceSummary (sanitized, no raw chat)
+
+8.4 Privacy by design
+---------------------
+Never expose raw messages in matching output.
+Only expose:
+- aggregated signals
+- trait summaries
+- compatibility rationale at high level
+
+========================================================================
+9) Suggested Immediate Backlog (practical order)
+========================================================================
+
+Priority P0 (do first)
+1) Shared insight/analysis schemas between frontend + backend
+2) Ensure Recaps/Dashboard/Love Guru use API as primary source only
+3) Harden polling/backoff/cancellation and status handling
+4) Add indexes and pagination for heavy list/message endpoints
+
+Priority P1
+5) Implement feature extraction service in worker
+6) Store versioned personality snapshots
+7) Create personality card API response adapter for Vibe Check
+
+Priority P2
+8) Implement deterministic matchmaking scoring service
+9) Add explanation generator layer
+10) Add ranking cache/materialized view strategy if traffic grows
+
+========================================================================
+10) Deployment/Operations Guidance
+========================================================================
+
+10.1 Environment discipline
+---------------------------
+Frontend:
+- VITE_API_URL must be set in deployment
+- VITE_AI_MODE explicit
+
+API:
+- DATABASE_URL, JWT_SECRET, CORS_ORIGIN, HOST, PORT, LOG_LEVEL
+
+Worker:
+- DATABASE_URL, REDIS_URL, ANALYSIS_MODE, OPENAI_API_KEY (optional for live)
+
+10.2 Runtime safety
+-------------------
+- Run prisma migrate deploy on every production release
+- Keep /health and /ready integrated into platform health checks
+- Ensure CORS allowlist includes exact production domains
+
+10.3 Release checklist (minimum)
+--------------------------------
+- Build passes (frontend + api + worker)
+- Migrations applied
+- /health and /ready green
+- Parse -> Analyze -> Dashboard smoke flow green
+- Love Guru send/reload flow green
+
+========================================================================
+11) Definition of “Best System Architecture” for your product
+========================================================================
+
+For Third Person AI, “best” means:
+
+1) Explainable:
+   - Every score/label has a reason users can understand
+
+2) Stable:
+   - Schema versioning + deterministic fallbacks
+
+3) Fast:
+   - Async jobs for heavy work
+   - Indexed queries and paginated UI
+
+4) Privacy-first:
+   - Raw text isolated to ingestion/analysis layers
+   - Matchmaking uses derived features, not message exposure
+
+5) Evolvable:
+   - Shared contracts
+   - Clear boundaries (UI vs API vs worker)
+   - No hidden state forks
+
+If you follow the phased plan above, the system will feel smoother immediately and will be ready for personality cards + matchmaking with much lower rework risk.
+
+========================================================================
+12) Final Recommendation
+========================================================================
+
+Before building more UI, spend one focused sprint on:
+- shared contracts
+- data ownership cleanup
+- worker feature extraction foundation
+
+That sprint will save significant time on every upcoming feature and reduce bugs that typically appear when personality/matching logic expands.
+

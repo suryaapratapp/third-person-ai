@@ -1,6 +1,5 @@
 import type { FastifyReply, FastifyRequest } from 'fastify'
 import { requireAuth } from './authMiddleware'
-import { enforceRateLimit } from '../services/rateLimitService'
 import { enforceDailyQuota } from '../services/quotaService'
 
 function endpointKey(request: FastifyRequest): string {
@@ -18,16 +17,6 @@ export async function requireProtectedAuth(request: FastifyRequest, reply: Fasti
   }
 
   const endpoint = endpointKey(request)
-  const rate = enforceRateLimit(request.authUserId, endpoint)
-  if (!rate.allowed) {
-    reply.header('Retry-After', String(rate.retryAfterSec))
-    return reply.status(429).send({
-      error: 'Rate limit exceeded',
-      endpoint,
-      retryAfterSec: rate.retryAfterSec,
-    })
-  }
-
   const quota = await enforceDailyQuota(request.authUserId, endpoint)
   reply.header('X-Quota-Limit', String(quota.limit))
   reply.header('X-Quota-Remaining', String(quota.remaining))

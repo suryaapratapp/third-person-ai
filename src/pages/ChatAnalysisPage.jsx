@@ -24,6 +24,11 @@ import {
   APP_LABELS,
   MAX_IMPORT_FILE_SIZE_BYTES,
 } from '../contracts/chatImportContract'
+import {
+  ANALYSIS_PUBLIC_STATUS,
+  UPLOAD_SESSION_STATUS,
+  toPublicAnalysisStatus,
+} from '../contracts/statuses'
 import { useAuth } from '../context/AuthContext'
 import { useDemoMode } from '../context/DemoModeContext'
 import { usePrivacy } from '../context/PrivacyContext'
@@ -207,6 +212,14 @@ function getApiErrorMessage(error, fallbackMessage) {
   return error?.error?.message || error?.message || fallbackMessage
 }
 
+function hashPasteText(value) {
+  let hash = 5381
+  for (let index = 0; index < value.length; index += 1) {
+    hash = (hash * 33) ^ value.charCodeAt(index)
+  }
+  return String(hash >>> 0)
+}
+
 function countLikelyTimestampLines(text) {
   const lines = text.split(/\r?\n/)
   const pattern = /^(\[?\d{1,4}[\/\.-]\d{1,2}[\/\.-]\d{1,4}[\],\s]+\d{1,2}:\d{2}(?::\d{2})?(?:\s*[APMapm]{2})?\]?|\d{1,2}[\/\.-]\d{1,2}[\/\.-]\d{2,4},\s*\d{1,2}:\d{2})/
@@ -273,7 +286,9 @@ export default function ChatAnalysisPage() {
   const [parseFailure, setParseFailure] = useState(null)
   const [latestAnalysisId, setLatestAnalysisId] = useState('')
   const [uploadSessionId, setUploadSessionId] = useState('')
-  const [lastPastedSyncText, setLastPastedSyncText] = useState('')
+  const [lastPastedSyncHash, setLastPastedSyncHash] = useState('')
+  const [isPasteSynced, setIsPasteSynced] = useState(false)
+  const [isSyncingPaste, setIsSyncingPaste] = useState(false)
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false)
   const [intent, setIntentState] = useState(() => getIntent(userId))
   const [isChangeFocusOpen, setIsChangeFocusOpen] = useState(false)
@@ -384,59 +399,6 @@ export default function ChatAnalysisPage() {
     }
   }, [activeTab, canUsePaste, chatText, selectedApp])
 
-  useEffect(() => {
-    if (activeTab !== 'paste') return
-    if (!importResult || !chatText.trim()) return
-    if (chatText.trim() === lastPastedSyncText) return
-
-    let cancelled = false
-
-    async function syncPaste() {
-      try {
-        setParseFailure(null)
-        const sessionId = await ensureUploadSession()
-        if (!sessionId || cancelled) return
-        await pasteText(sessionId, chatText.trim())
-        if (cancelled) return
-        setLastPastedSyncText(chatText.trim())
-        await pollUploadSessionStatus(sessionId)
-      } catch (error) {
-        if (!cancelled) {
-          const status = getApiErrorStatus(error)
-          if (status === 422 && error?.error?.data?.error === 'ParseFailed') {
-            setParseFailure(error.error.data)
-            setErrors((prev) => ({
-              ...prev,
-              import: 'We could not parse this export. Review the guidance below.',
-            }))
-            return
-          }
-
-          if (status === 401 || status === 403) {
-            setErrors((prev) => ({ ...prev, import: 'Session expired. Please sign in again.' }))
-            return
-          }
-
-          if (status === 429) {
-            setErrors((prev) => ({ ...prev, import: 'Too many requests. Waiting a moment...' }))
-            return
-          }
-
-          setErrors((prev) => ({
-            ...prev,
-            import: getApiErrorMessage(error, 'Unable to sync pasted text to backend.'),
-          }))
-        }
-      }
-    }
-
-    void syncPaste()
-
-    return () => {
-      cancelled = true
-    }
-  }, [activeTab, chatText, importResult, lastPastedSyncText, selectedApp])
-
   const ensureUploadSession = async () => {
     if (uploadSessionId) return uploadSessionId
     const sourceApp = selectedApp || 'whatsapp'
@@ -469,7 +431,7 @@ export default function ChatAnalysisPage() {
         const status = payload?.session?.status
         lastSeenStatus = status
 
-        if (status === 'PARSED') {
+        if (status === UPLOAD_SESSION_STATUS.PARSED) {
           const reportCount = Number(payload?.parseReport?.parsedCount ?? 0)
           if ((!importResult || importResult.stats.messageCount < reportCount) && reportCount > 0) {
             setImportResult((prev) => ({
@@ -499,7 +461,7 @@ export default function ChatAnalysisPage() {
           return true
         }
 
-        if (status === 'FAILED') {
+        if (status === UPLOAD_SESSION_STATUS.FAILED) {
           setErrors((prev) => ({
             ...prev,
             import: 'Parsing failed on the server. Please try a different export.',
@@ -543,7 +505,10 @@ export default function ChatAnalysisPage() {
       delayMs = Math.min(delayMs * 2, 10000)
     }
 
-    if (lastSeenStatus === 'QUEUED' || lastSeenStatus === 'PARSING') {
+    if (
+      lastSeenStatus === UPLOAD_SESSION_STATUS.QUEUED ||
+      lastSeenStatus === UPLOAD_SESSION_STATUS.PARSING
+    ) {
       setErrors((prev) => ({
         ...prev,
         import:
@@ -571,7 +536,9 @@ export default function ChatAnalysisPage() {
     setChatText('')
     setImportResult(null)
     setUploadSessionId('')
-    setLastPastedSyncText('')
+    setLastPastedSyncHash('')
+    setIsPasteSynced(false)
+    setIsSyncingPaste(false)
     setParseFailure(null)
     setPasteTimeline('')
     setTimelineStartDate('')
@@ -693,12 +660,91 @@ export default function ChatAnalysisPage() {
     handleFileSelect(file)
   }
 
+  const handleParseNow = async () => {
+    if (activeTab !== 'paste') return
+
+    const trimmed = chatText.trim()
+    if (!trimmed) {
+      setErrors((prev) => ({
+        ...prev,
+        text: 'Paste chat text first.',
+      }))
+      return
+    }
+
+    if (!importResult?.stats?.messageCount) {
+      setErrors((prev) => ({
+        ...prev,
+        import: 'No messages detected. Try a different export or paste text.',
+      }))
+      return
+    }
+
+    const textHash = hashPasteText(trimmed)
+    if (textHash === lastPastedSyncHash && isPasteSynced) {
+      setErrors((prev) => ({ ...prev, import: '' }))
+      return
+    }
+
+    setIsSyncingPaste(true)
+    setErrors((prev) => ({ ...prev, import: '', run: '' }))
+
+    try {
+      setParseFailure(null)
+      const sessionId = await ensureUploadSession()
+      if (!sessionId) return
+
+      await pasteText(sessionId, trimmed)
+      const parsedOnServer = await pollUploadSessionStatus(sessionId)
+      if (!parsedOnServer) {
+        setIsPasteSynced(false)
+        return
+      }
+
+      setLastPastedSyncHash(textHash)
+      setIsPasteSynced(true)
+      setErrors((prev) => ({ ...prev, import: '' }))
+    } catch (error) {
+      const status = getApiErrorStatus(error)
+      if (status === 422 && error?.error?.data?.error === 'ParseFailed') {
+        setParseFailure(error.error.data)
+        setIsPasteSynced(false)
+        setErrors((prev) => ({
+          ...prev,
+          import: 'We could not parse this export. Review the guidance below.',
+        }))
+        return
+      }
+
+      if (status === 401 || status === 403) {
+        setIsPasteSynced(false)
+        setErrors((prev) => ({ ...prev, import: 'Session expired. Please sign in again.' }))
+        return
+      }
+
+      if (status === 429) {
+        setIsPasteSynced(false)
+        setErrors((prev) => ({ ...prev, import: 'Too many requests. Waiting a moment...' }))
+        return
+      }
+
+      setIsPasteSynced(false)
+      setErrors((prev) => ({
+        ...prev,
+        import: getApiErrorMessage(error, 'Unable to sync pasted text to backend.'),
+      }))
+    } finally {
+      setIsSyncingPaste(false)
+    }
+  }
+
   const canRunAnalysis =
     (activeTab === 'upload'
       ? Boolean(selectedFile) && Boolean(selectedApp)
-      : chatText.trim().length >= 200) &&
+      : chatText.trim().length >= 200 && isPasteSynced) &&
     !isRunning &&
-    !isParsing
+    !isParsing &&
+    !isSyncingPaste
 
   const progressSteps = [
     'Reading patterns',
@@ -797,13 +843,14 @@ export default function ChatAnalysisPage() {
           break
         }
 
-        if (status.status === 'COMPLETED' || status.status === 'READY') {
+        const publicStatus = toPublicAnalysisStatus(status.status)
+        if (publicStatus === ANALYSIS_PUBLIC_STATUS.READY) {
           setProgressState(progressSteps[4])
           setLatestAnalysisId(analysisId)
           break
         }
 
-        if (status.status === 'FAILED') {
+        if (publicStatus === ANALYSIS_PUBLIC_STATUS.FAILED) {
           setErrors((prev) => ({
             ...prev,
             run: 'Analysis failed. Please try again with a different export.',
@@ -907,6 +954,9 @@ export default function ChatAnalysisPage() {
     }
     if (activeTab === 'paste' && chatText.trim().length < 200) {
       nextErrors.run = 'Paste a bit more text for meaningful insights.'
+    }
+    if (activeTab === 'paste' && !isPasteSynced) {
+      nextErrors.run = 'Parse now before running analysis.'
     }
 
     setErrors(nextErrors)
@@ -1229,6 +1279,7 @@ export default function ChatAnalysisPage() {
                 onChange={(event) => {
                   setChatText(event.target.value)
                   setLatestAnalysisId('')
+                  setIsPasteSynced(false)
                   setErrors((prev) => ({ ...prev, text: '', import: '', run: '' }))
                 }}
                 rows={10}
@@ -1238,6 +1289,25 @@ export default function ChatAnalysisPage() {
               <div className="mt-2 flex items-center justify-between text-xs text-slate-100/70">
                 <span>Paste mode works with any chat format.</span>
                 <span>{chatText.length} characters</span>
+              </div>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => void handleParseNow()}
+                  disabled={isSyncingPaste || isParsing || !chatText.trim()}
+                  className="rounded-lg border border-cyan-200/35 bg-cyan-300/10 px-3 py-1.5 text-xs font-semibold text-cyan-100 transition hover:bg-cyan-300/20 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {isSyncingPaste ? 'Parsing...' : 'Parse now'}
+                </button>
+                {isPasteSynced ? (
+                  <span className="rounded-full border border-emerald-200/35 bg-emerald-300/10 px-2.5 py-1 text-[11px] font-medium text-emerald-100">
+                    Parsed and synced
+                  </span>
+                ) : (
+                  <span className="rounded-full border border-amber-200/35 bg-amber-300/10 px-2.5 py-1 text-[11px] font-medium text-amber-100">
+                    Not parsed yet
+                  </span>
+                )}
               </div>
               <div className="mt-2 flex flex-wrap items-center gap-2">
                 <span className="rounded-full border border-cyan-200/30 bg-cyan-300/10 px-2.5 py-1 text-xs font-medium text-cyan-100">

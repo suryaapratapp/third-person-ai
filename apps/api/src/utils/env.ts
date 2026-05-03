@@ -39,6 +39,17 @@ function firstDefined(...values: Array<string | undefined>): string {
 const nodeEnv = process.env.NODE_ENV ?? 'development'
 const defaultHost = nodeEnv === 'production' ? '0.0.0.0' : '127.0.0.1'
 
+function isWeakJwtSecret(secret: string): boolean {
+  if (!secret || secret.trim().length < 24) return true
+  const weakDefaults = new Set([
+    'dev-access-secret',
+    'dev-refresh-secret',
+    'change-me-access',
+    'change-me-refresh',
+  ])
+  return weakDefaults.has(secret.trim())
+}
+
 export const env = {
   nodeEnv,
   port: toPort(process.env.PORT, 3002),
@@ -61,6 +72,8 @@ export const env = {
   redisUrl: process.env.REDIS_URL ?? 'redis://127.0.0.1:6379',
   parseExportQueueName: process.env.PARSE_EXPORT_QUEUE_NAME ?? 'parse_export',
   analysisQueueName: process.env.ANALYSIS_QUEUE_NAME ?? 'analysis_jobs',
+  parseJobLockTtlSec: toNumber(process.env.PARSE_JOB_LOCK_TTL_SEC, 300),
+  analysisSessionLockTtlSec: toNumber(process.env.ANALYSIS_SESSION_LOCK_TTL_SEC, 1800),
   openAiApiKey: process.env.OPENAI_API_KEY ?? '',
   openAiModel: process.env.OPENAI_MODEL ?? 'gpt-4o-mini',
   analysisMode: resolveAnalysisMode(process.env.ANALYSIS_MODE, process.env.OPENAI_API_KEY ?? ''),
@@ -77,4 +90,16 @@ export const env = {
   refreshTokenTtl: process.env.JWT_REFRESH_TTL ?? '7d',
   uploadDir: process.env.UPLOAD_DIR ?? 'uploads',
   maxUploadFileSizeBytes: toPort(process.env.MAX_UPLOAD_FILE_SIZE_BYTES, 10 * 1024 * 1024),
+}
+
+if (env.nodeEnv === 'production') {
+  if (isWeakJwtSecret(env.jwtAccessSecret) || isWeakJwtSecret(env.jwtRefreshSecret)) {
+    throw new Error(
+      'JWT_ACCESS_SECRET and JWT_REFRESH_SECRET must be set to strong secrets in production.',
+    )
+  }
+
+  if (env.jwtAccessSecret === env.jwtRefreshSecret) {
+    throw new Error('JWT access and refresh secrets must be different in production.')
+  }
 }

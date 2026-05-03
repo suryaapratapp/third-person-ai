@@ -1,9 +1,14 @@
 import { normalizeAnalysisResult } from '../contracts/analysisContract'
 import { buildKeyMoments } from './dashboardDrilldownService'
+import { ANALYSIS_PUBLIC_STATUS, toPublicAnalysisStatus } from '../contracts/statuses'
 
 const ANALYSES_KEY = 'tpai:analyses'
 const LAST_OPENED_ANALYSIS_KEY = 'tpai:analysis:last-opened'
-const VALID_STATUSES = ['READY', 'ANALYZING', 'FAILED']
+const VALID_STATUSES = [
+  ANALYSIS_PUBLIC_STATUS.READY,
+  ANALYSIS_PUBLIC_STATUS.ANALYZING,
+  ANALYSIS_PUBLIC_STATUS.FAILED,
+]
 
 function readAnalyses() {
   try {
@@ -78,8 +83,9 @@ function sanitizeTags(tags) {
 }
 
 function sanitizeStatus(status) {
-  if (!status) return 'READY'
-  return VALID_STATUSES.includes(status) ? status : 'READY'
+  const normalized = toPublicAnalysisStatus(status)
+  if (normalized === ANALYSIS_PUBLIC_STATUS.PENDING) return ANALYSIS_PUBLIC_STATUS.READY
+  return VALID_STATUSES.includes(normalized) ? normalized : ANALYSIS_PUBLIC_STATUS.READY
 }
 
 function enrichAnalysis(analysis) {
@@ -120,7 +126,7 @@ function buildMockResult(input) {
     createdAt,
     title: toDefaultTitle(createdAt),
     tags: [],
-    status: 'READY',
+    status: ANALYSIS_PUBLIC_STATUS.READY,
     sourceApp: input.sourceApp,
     inputMethod: input.inputMethod,
     intent: input.intent ?? null,

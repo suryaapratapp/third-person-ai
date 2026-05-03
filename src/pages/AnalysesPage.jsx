@@ -13,9 +13,15 @@ import {
   updateAnalysis,
 } from '../services/analysisServiceApi'
 import { INTENT_VALUES, getIntentLabel } from '../services/preferencesService'
+import { ANALYSIS_PUBLIC_STATUS } from '../contracts/statuses'
 
 const APP_OPTIONS = ['ALL', 'whatsapp', 'imessage', 'telegram', 'instagram', 'messenger', 'snapchat']
-const STATUS_OPTIONS = ['ALL', 'READY', 'ANALYZING', 'FAILED']
+const STATUS_OPTIONS = [
+  'ALL',
+  ANALYSIS_PUBLIC_STATUS.READY,
+  ANALYSIS_PUBLIC_STATUS.ANALYZING,
+  ANALYSIS_PUBLIC_STATUS.FAILED,
+]
 const TAG_OPTIONS = ['Dating', 'Long-term', 'Breakup', 'Situationship', 'Communication', 'Trust', 'Conflict']
 const SORT_OPTIONS = [
   { value: 'newest', label: 'Newest' },
@@ -43,7 +49,11 @@ function StatusBadge({ status }) {
     FAILED: 'border-rose-200/30 bg-rose-300/10 text-rose-100',
   }
 
-  return <span className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold ${styles[status] || styles.READY}`}>{status || 'READY'}</span>
+  return (
+    <span className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold ${styles[status] || styles.READY}`}>
+      {status || ANALYSIS_PUBLIC_STATUS.READY}
+    </span>
+  )
 }
 
 function ConfirmDeleteModal({ item, onCancel, onConfirm }) {
@@ -625,11 +635,11 @@ export default function AnalysesPage() {
                         <Trash2 className="h-3.5 w-3.5" />
                         Delete
                       </button>
-                      {item.status === 'FAILED' ? (
+                      {item.status === ANALYSIS_PUBLIC_STATUS.FAILED ? (
                         <button
                           type="button"
                           onClick={() => {
-                            updateAnalysis(item.id, { status: 'READY' })
+                            updateAnalysis(item.id, { status: ANALYSIS_PUBLIC_STATUS.READY })
                             setVersion((prev) => prev + 1)
                           }}
                           className="inline-flex items-center gap-1 rounded-lg border border-amber-200/35 bg-amber-300/10 px-3 py-1.5 text-xs font-semibold text-amber-100 transition hover:bg-amber-300/20"

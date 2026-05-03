@@ -17,20 +17,13 @@ import {
 } from '../services/analysisService'
 import { enqueueRunAnalysisJob } from '../services/queueService'
 import { AppError } from '../errors/AppError'
+import { toPublicAnalysisStatus } from 'third-person-ai/shared/statuses.js'
 
 function formatZodError(error: ZodError) {
   return error.issues.map((issue) => ({
     path: issue.path.join('.'),
     message: issue.message,
   }))
-}
-
-function toPublicAnalysisStatus(status?: string) {
-  if (!status) {
-    return 'PENDING' // or 'UNKNOWN' — choose based on your system
-  }
-
-  return status === 'COMPLETED' ? 'READY' : status
 }
 
 export async function createAnalysisRunController(
@@ -67,7 +60,14 @@ export async function createAnalysisRunController(
     return reply.status(404).send({ error: 'Upload session or person entity not found' })
   }
 
-  await enqueueRunAnalysisJob(analysisRun.id, analysisRun.uploadSessionId)
+  const queued = await enqueueRunAnalysisJob(analysisRun.id, analysisRun.uploadSessionId)
+  if (!queued) {
+    return reply.status(202).send({
+      analysisRunId: analysisRun.id,
+      status: analysisRun.status,
+      message: 'An analysis is already active for this upload session.',
+    })
+  }
 
   return reply.status(201).send({
     analysisRunId: analysisRun.id,

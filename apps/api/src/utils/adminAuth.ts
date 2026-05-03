@@ -11,7 +11,12 @@ const adminIdsSet = new Set(env.adminIds)
 export async function requireAdminAuth(request: FastifyRequest, reply: FastifyReply) {
   const authResult = await requireProtectedAuth(request, reply)
   if (authResult) {
-    return 
+    return authResult
+  }
+
+  if (!normalizedAdminEmails.size && !adminIdsSet.size) {
+    request.log.error('Admin routes are disabled: ADMIN_EMAILS/ADMIN_IDS not configured')
+    return reply.status(403).send({ error: 'Admin access required' })
   }
 
   const email = (request.authEmail || '').trim().toLowerCase()
@@ -22,7 +27,6 @@ export async function requireAdminAuth(request: FastifyRequest, reply: FastifyRe
 
   if (!allowedByEmail && !allowedById) {
     request.log.warn({email, userId}, 'Unauthorized admin access attempt')
-    reply.status(403).send({ error: 'Admin access required' })
-    return
+    return reply.status(403).send({ error: 'Admin access required' })
   }
 }

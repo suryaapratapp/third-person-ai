@@ -2,13 +2,12 @@ import type { FastifyReply, FastifyRequest } from 'fastify'
 import {
   AdminIdParams,
   adminIdParamsSchema,
-  adminSessionListQuerySchema,
   AdminSessionUpdateBody,
+  adminSessionListQuerySchema,
   adminSessionUpdateBodySchema,
-  adminUserCreateBodySchema,
-  AdminUsersQuery,
-  adminUsersQuerySchema,
   AdminUserUpdateBody,
+  adminUserCreateBodySchema,
+  adminUsersQuerySchema,
   adminUserUpdateBodySchema,
 } from '../schemas/adminSchemas'
 import {
@@ -23,10 +22,6 @@ import {
 import { NotFoundError } from '../errors/NotFoundError'
 import { AppError } from '../errors/AppError'
 import { ZodError } from 'zod'
-
-function sendValidationError(reply: FastifyReply, message: string) {
-  return reply.status(400).send({ error: message })
-}
 
 function formatZodError(error: ZodError) {
   return error.issues.map((issue) => ({

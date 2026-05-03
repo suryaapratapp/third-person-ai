@@ -19,7 +19,6 @@ import {
   listLoveGuruThreadsForUser,
   listThreadMessagesForUser,
 } from '../services/loveGuruService'
-import { enforceRateLimit } from '../services/rateLimitService'
 
 function formatZodError(error: ZodError) {
   return error.issues.map((issue) => ({
@@ -169,7 +168,10 @@ export async function createLoveGuruMessageController(
       return reply.status(404).send({ error: 'Love Guru thread not found' })
     }
 
-    return reply.status(201).send({message: result})
+    return reply.status(201).send({
+      userMessage: result.userMessage,
+      assistantMessage: result.assistantMessage,
+    })
   } catch (error) {
     request.log.error({ error }, 'Failed to create Love Guru message')   
 

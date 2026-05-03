@@ -1,11 +1,21 @@
 import { env } from '../utils/env'
+import IORedis from 'ioredis'
 
 type EndpointPolicy = {
   maxRequests: number
   windowMs: number
 }
 
-const store = new Map<string, number[]>()
+let redisClient: IORedis | null = null
+
+function getRedisClient(): IORedis {
+  if (!redisClient) {
+    redisClient = new IORedis(env.redisUrl, {
+      maxRetriesPerRequest: null,
+    })
+  }
+  return redisClient
+}
 
 function getPolicy(endpoint: string): EndpointPolicy {
   if (endpoint.includes('/love-guru/threads/') && endpoint.endsWith('/messages')) {
@@ -35,25 +45,34 @@ function getPolicy(endpoint: string): EndpointPolicy {
   }
 }
 
-export function enforceRateLimit(userId: string, endpoint: string): { allowed: boolean; retryAfterSec: number } {
-  const policy = getPolicy(endpoint)
-  const key = `${userId}:${endpoint}`
-  const now = Date.now()
-  const windowStart = now - policy.windowMs
+function getRateLimitKey(identifier: string, endpoint: string, windowMs: number, nowMs: number): string {
+  const windowBucket = Math.floor(nowMs / windowMs)
+  return `rate-limit:${identifier}:${endpoint}:${windowBucket}`
+}
 
-  const timestamps = (store.get(key) ?? []).filter((timestamp) => timestamp > windowStart)
-  if (timestamps.length >= policy.maxRequests) {
-    const earliest = timestamps[0] ?? now
-    const retryAfterMs = Math.max(1000, policy.windowMs - (now - earliest))
-    store.set(key, timestamps)
+export async function enforceRateLimit(
+  identifier: string,
+  endpoint: string,
+): Promise<{ allowed: boolean; retryAfterSec: number }> {
+  const policy = getPolicy(endpoint)
+  const nowMs = Date.now()
+  const key = getRateLimitKey(identifier, endpoint, policy.windowMs, nowMs)
+  const client = getRedisClient()
+
+  const currentCount = await client.incr(key)
+  if (currentCount === 1) {
+    await client.pexpire(key, policy.windowMs)
+  }
+
+  if (currentCount > policy.maxRequests) {
+    const ttlMs = await client.pttl(key)
+    const retryAfterMs = ttlMs > 0 ? ttlMs : policy.windowMs
     return {
       allowed: false,
       retryAfterSec: Math.ceil(retryAfterMs / 1000),
     }
   }
 
-  timestamps.push(now)
-  store.set(key, timestamps)
   return {
     allowed: true,
     retryAfterSec: 0,

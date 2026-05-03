@@ -178,7 +178,6 @@ async function createVerificationCode(params: {
   })
 
   if (isDemoAuthMode) {
-    // eslint-disable-next-line no-console
     console.info(`[demo-auth] ${params.purpose} ${params.channel} OTP for ${params.userId}: ${otp}`)
   }
 
@@ -626,7 +625,7 @@ export async function refreshSession(refreshToken: string): Promise<AuthResult> 
   })
 
   if (!user?.refreshTokenHash) {
-    throw new Error('Refresh token not found')
+    throw new Error('Invalid refresh token')
   }
 
   const valid = await comparePassword(refreshToken, user.refreshTokenHash)
@@ -791,6 +790,7 @@ export async function changePassword(params: {
     where: { id: user.id },
     data: {
       hashedPassword,
+      refreshTokenHash: null,
     },
   })
 }

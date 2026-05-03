@@ -1,6 +1,8 @@
 import { prisma } from '../utils/prisma'
-
-//routes are not yet 
+import {
+  ACTIVE_ANALYSIS_RUN_STATUSES,
+  ANALYSIS_RUN_STATUS,
+} from 'third-person-ai/shared/statuses.js'
 export type AnalysisRunDto = {
   id: string
   uploadSessionId: string
@@ -54,11 +56,31 @@ export async function createAnalysisRunForUser(
     if (!personEntity) return null
   }
 
+  const existingActiveRun = await prisma.analysisRun.findFirst({
+    where: {
+      uploadSessionId,
+      status: { in: [...ACTIVE_ANALYSIS_RUN_STATUSES] },
+    },
+    orderBy: { createdAt: 'desc' },
+    select: {
+      id: true,
+      uploadSessionId: true,
+      personEntityId: true,
+      status: true,
+      model: true,
+      createdAt: true,
+    },
+  })
+
+  if (existingActiveRun) {
+    return toAnalysisRunDto(existingActiveRun)
+  }
+
   const analysisRun = await prisma.analysisRun.create({
     data: {
       uploadSessionId,
       personEntityId,
-      status: 'QUEUED',
+      status: ANALYSIS_RUN_STATUS.QUEUED,
       model: 'mock-analysis-v1',
     },
     select: {

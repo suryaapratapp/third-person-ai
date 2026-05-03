@@ -9,10 +9,8 @@ import type {
   AdminUsersQuery,
 } from '../schemas/adminSchemas'
 import { NotFoundError } from '../errors/NotFoundError'
-import { ConflictError } from '../errors/ConfliceError'
-import { ValidationError } from '../errors/ValidationError';
-import { request } from 'http'
-import { ca } from 'zod/v4/locales'
+import { ConflictError } from '../errors/ConflictError'
+import { ValidationError } from '../errors/ValidationError'
 
 type PaginationResult<T> = {
   items: T[]

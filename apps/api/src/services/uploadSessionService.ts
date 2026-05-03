@@ -1,10 +1,12 @@
 import { NotFoundError } from '../errors/NotFoundError'
 import { prisma } from '../utils/prisma'
+import { UPLOAD_SESSION_STATUS } from 'third-person-ai/shared/statuses.js'
 
 export type UploadSessionDto = {
   id: string
   status: string
   sourceApp: string
+  parseReportJson: unknown | null
   createdAt: string
 }
 
@@ -25,12 +27,14 @@ function toUploadSessionDto(value: {
   id: string
   status: string
   sourceApp: string
+  parseReportJson: unknown | null
   createdAt: Date
 }): UploadSessionDto {
   return {
     id: value.id,
     status: value.status,
     sourceApp: value.sourceApp,
+    parseReportJson: value.parseReportJson ?? null,
     createdAt: value.createdAt.toISOString(),
   }
 }
@@ -66,12 +70,13 @@ export async function createUploadSession(userId: string, sourceApp: string): Pr
     data: {
       userId,
       sourceApp,
-      status: 'READY',
+      status: UPLOAD_SESSION_STATUS.READY,
     },
     select: {
       id: true,
       status: true,
       sourceApp: true,
+      parseReportJson: true,
       createdAt: true,
     },
   })
@@ -87,6 +92,7 @@ export async function listUserUploadSessions(userId: string): Promise<UploadSess
       id: true,
       status: true,
       sourceApp: true,
+      parseReportJson: true,
       createdAt: true,
     },
   })
@@ -104,6 +110,7 @@ export async function getUserUploadSessionById(userId: string, id: string): Prom
       id: true,
       status: true,
       sourceApp: true,
+      parseReportJson: true,
       createdAt: true,
     },
   })
@@ -150,6 +157,64 @@ export async function createUploadedFileMetadata(params: {
   return toUploadedFileDto(uploadedFile)
 }
 
+export async function upsertLatestPastedFileMetadata(params: {
+  uploadSessionId: string
+  storagePath: string
+  storageProvider?: string
+  storageFileId?: string
+  storageFileUrl?: string
+  originalName?: string
+  mime: string
+  size: number
+}): Promise<UploadedFileDto> {
+  const latestPasteFile = await prisma.uploadedFile.findFirst({
+    where: {
+      uploadSessionId: params.uploadSessionId,
+      mime: 'text/plain',
+      originalName: {
+        startsWith: 'paste-',
+      },
+    },
+    orderBy: { createdAt: 'desc' },
+    select: {
+      id: true,
+    },
+  })
+
+  if (!latestPasteFile) {
+    return createUploadedFileMetadata(params)
+  }
+
+  const uploadedFile = await prisma.uploadedFile.update({
+    where: {
+      id: latestPasteFile.id,
+    },
+    data: {
+      storagePath: params.storagePath,
+      storageProvider: params.storageProvider ?? null,
+      storageFileId: params.storageFileId ?? null,
+      storageFileUrl: params.storageFileUrl ?? null,
+      originalName: params.originalName ?? null,
+      mime: params.mime,
+      size: params.size,
+    },
+    select: {
+      id: true,
+      uploadSessionId: true,
+      storagePath: true,
+      storageProvider: true,
+      storageFileId: true,
+      storageFileUrl: true,
+      originalName: true,
+      mime: true,
+      size: true,
+      createdAt: true,
+    },
+  })
+
+  return toUploadedFileDto(uploadedFile)
+}
+
 export async function getLatestUploadedFilePath(uploadSessionId: string): Promise<string> {
   const file = await prisma.uploadedFile.findFirst({
     where: { uploadSessionId },
@@ -172,6 +237,7 @@ export async function updateUploadSessionStatus(
       id: true,
       status: true,
       sourceApp: true,
+      parseReportJson: true,
       createdAt: true,
     },
   })

@@ -11,6 +11,7 @@ import {
   getLatestUploadedFilePath,
   getUserUploadSessionById,
   listUserUploadSessions,
+  upsertLatestPastedFileMetadata,
   updateUploadSessionStatus,
 } from '../services/uploadSessionService'
 import { enqueueParseExportJob } from '../services/queueService'
@@ -20,12 +21,33 @@ import {
   validateFileExtensionForSourceApp,
 } from '../utils/fileUpload'
 import { readParseReport } from '../utils/parseReport'
+import { UPLOAD_SESSION_STATUS } from 'third-person-ai/shared/statuses.js'
 
 function formatZodError(error: ZodError) {
   return error.issues.map((issue) => ({
     path: issue.path.join('.'),
     message: issue.message,
   }))
+}
+
+function buildFallbackParseFailed(reason: string): Record<string, unknown> {
+  return {
+    error: 'ParseFailed',
+    detectedFormat: 'unknown',
+    reason,
+    expectedExamples: [],
+    stats: {
+      totalLines: 0,
+      matchedLines: 0,
+      ignoredLines: 0,
+    },
+    firstIgnoredLines: [],
+    tips: [
+      'Verify your export format is supported for the selected app.',
+      'Export without media or attachments and retry.',
+      'If this keeps failing, try paste mode with plain text.',
+    ],
+  }
 }
 
 export async function createUploadSessionController(
@@ -89,14 +111,36 @@ export async function getUploadSessionController(
     return reply.status(404).send({ error: 'Upload session not found' })
   }
 
-  const latestStoragePath = await getLatestUploadedFilePath(session.id)
-  const parseReport = await readParseReport({ sessionId: session.id, storagePath: latestStoragePath })
-
-  if (session.status === 'FAILED' && parseReport && typeof parseReport === 'object') {
-    const payload = parseReport as Record<string, unknown>
-    if (payload.error === 'ParseFailed') {
-      return reply.status(422).send(payload)
+  let parseReport = session.parseReportJson
+  if (!parseReport) {
+    try {
+      const latestStoragePath = await getLatestUploadedFilePath(session.id)
+      parseReport = await readParseReport({ sessionId: session.id, storagePath: latestStoragePath })
+    } catch {
+      parseReport = null
     }
+  }
+
+  if (session.status === UPLOAD_SESSION_STATUS.FAILED) {
+    if (parseReport && typeof parseReport === 'object') {
+      const payload = parseReport as Record<string, unknown>
+      if (payload.error === 'ParseFailed') {
+        return reply.status(422).send(payload)
+      }
+      return reply.status(422).send(
+        buildFallbackParseFailed(
+          typeof payload.reason === 'string'
+            ? payload.reason
+            : 'Parsing failed for this upload. Please retry with a cleaner export.',
+        ),
+      )
+    }
+
+    return reply.status(422).send(
+      buildFallbackParseFailed(
+        'Parsing failed for this upload. Please retry with a different export or paste format.',
+      ),
+    )
   }
 
   return reply.status(200).send({ session, parseReport })
@@ -142,8 +186,6 @@ export async function uploadSessionFileController(
   }
 
   try {
-    // OLD APPROACH: const saved = await saveMultipartFileLocally(uploadedPart, session.id)
-    // New approach: saveMultipartFileLocally now proxies to centralized Google Drive storage.
     const saved = await saveMultipartFileLocally(uploadedPart, session.id)
 
     const uploadedFile = await createUploadedFileMetadata({
@@ -157,8 +199,13 @@ export async function uploadSessionFileController(
       size: saved.size,
     })
 
-    await updateUploadSessionStatus(session.id, 'QUEUED')
-    await enqueueParseExportJob(session.id)
+    const shouldEnqueue =
+      session.status !== UPLOAD_SESSION_STATUS.QUEUED &&
+      session.status !== UPLOAD_SESSION_STATUS.PARSING
+    await updateUploadSessionStatus(session.id, UPLOAD_SESSION_STATUS.QUEUED)
+    if (shouldEnqueue) {
+      await enqueueParseExportJob(session.id)
+    }
 
     return reply.status(201).send({
       file: {
@@ -256,10 +303,8 @@ export async function pasteUploadSessionController(
   const preflight = buildPastePreflight(parsedBody.data.text)
 
   try {
-    // OLD APPROACH: const saved = await savePastedTextLocally(parsedBody.data.text, session.id)
-    // New approach: savePastedTextLocally now proxies to centralized Google Drive storage.
     const saved = await savePastedTextLocally(parsedBody.data.text, session.id)
-    const uploadedFile = await createUploadedFileMetadata({
+    const uploadedFile = await upsertLatestPastedFileMetadata({
       uploadSessionId: session.id,
       storagePath: saved.storagePath,
       storageProvider: saved.storageProvider,
@@ -270,8 +315,13 @@ export async function pasteUploadSessionController(
       size: saved.size,
     })
 
-    await updateUploadSessionStatus(session.id, 'QUEUED')
-    await enqueueParseExportJob(session.id)
+    const shouldEnqueue =
+      session.status !== UPLOAD_SESSION_STATUS.QUEUED &&
+      session.status !== UPLOAD_SESSION_STATUS.PARSING
+    await updateUploadSessionStatus(session.id, UPLOAD_SESSION_STATUS.QUEUED)
+    if (shouldEnqueue) {
+      await enqueueParseExportJob(session.id)
+    }
 
     const responseCode = preflight.status === 'success' ? 201 : 200
     return reply.status(responseCode).send({

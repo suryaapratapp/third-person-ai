@@ -23,7 +23,7 @@
     "setup:full": "npm run setup && npm run db:check:node",
     "infra:up": "docker compose -f docker-compose.dev.yml up -d",
     "infra:down": "docker compose -f docker-compose.dev.yml down -v",
-    "lint": "eslint \"src/**/*.ts\"",
+    "lint": "eslint . --ext .ts",
     "format": "prettier --write \"src/**/*.ts\""
   },
   "engines": {

@@ -25,9 +25,15 @@ function resolveAnalysisMode(rawMode: string | undefined, apiKey: string): 'mock
 export const env = {
   redisUrl: process.env.REDIS_URL ?? 'redis://127.0.0.1:6379',
   parseExportQueueName: process.env.PARSE_EXPORT_QUEUE_NAME ?? 'parse_export',
+  parseExportDeadLetterQueueName:
+    process.env.PARSE_EXPORT_DLQ_NAME ?? 'parse_export_dead_letter',
   analysisQueueName: process.env.ANALYSIS_QUEUE_NAME ?? 'analysis_jobs',
+  analysisDeadLetterQueueName:
+    process.env.ANALYSIS_DLQ_NAME ?? 'analysis_jobs_dead_letter',
   aggregatePersonalityQueueName:
     process.env.AGGREGATE_PERSONALITY_QUEUE_NAME ?? 'aggregate_personality_jobs',
+  parseJobLockTtlSec: Number.parseInt(process.env.PARSE_JOB_LOCK_TTL_SEC ?? '300', 10),
+  analysisSessionLockTtlSec: Number.parseInt(process.env.ANALYSIS_SESSION_LOCK_TTL_SEC ?? '1800', 10),
   openAiApiKey: process.env.OPENAI_API_KEY ?? '',
   openAiModel: process.env.OPENAI_MODEL ?? 'gpt-4o-mini',
   analysisMode: resolveAnalysisMode(process.env.ANALYSIS_MODE, process.env.OPENAI_API_KEY ?? ''),

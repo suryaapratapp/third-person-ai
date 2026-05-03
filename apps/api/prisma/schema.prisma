@@ -52,6 +52,7 @@ model UploadSession {
   userId        String
   sourceApp     String
   status        String         @default("READY")
+  parseReportJson Json?
   createdAt     DateTime       @default(now())
   analysisRuns  AnalysisRun[]
   messages      Message[]
@@ -92,6 +93,7 @@ model Message {
   uploadSession   UploadSession @relation(fields: [uploadSessionId], references: [id], onDelete: Cascade)
 
   @@index([uploadSessionId])
+  @@index([uploadSessionId, timestamp])
   @@index([timestamp])
   @@map("messages")
 }
@@ -109,6 +111,7 @@ model AnalysisRun {
   loveGuruThreads LoveGuruThread[]
 
   @@index([uploadSessionId])
+  @@index([uploadSessionId, status])
   @@index([personEntityId])
   @@map("analysis_runs")
 }

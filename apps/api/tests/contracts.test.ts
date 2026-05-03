@@ -1,9 +1,11 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { z } from 'zod'
+import { PrismaClient } from '@prisma/client'
 import { buildServer } from '../src/index'
 
 describe('API contract tests', () => {
   let app: Awaited<ReturnType<typeof buildServer>>
+  const prisma = new PrismaClient()
 
   beforeAll(async () => {
     app = await buildServer()
@@ -11,6 +13,7 @@ describe('API contract tests', () => {
 
   afterAll(async () => {
     await app.close()
+    await prisma.$disconnect()
   })
 
   it('GET /health matches response contract', async () => {
@@ -173,6 +176,112 @@ describe('API contract tests', () => {
     })
 
     const parsed = schema.safeParse(res.json())
+    expect(parsed.success).toBe(true)
+  })
+
+  it('POST /love-guru/threads/:id/messages returns contract shape', async () => {
+    const readyRes = await app.inject({ method: 'GET', url: '/ready' })
+    if (readyRes.statusCode !== 200) {
+      expect(readyRes.statusCode).toBe(503)
+      return
+    }
+
+    const baseEmail = `contract-love-guru-${Date.now()}-${Math.floor(Math.random() * 1_000_000)}`
+    const email = `${baseEmail}@example.com`
+    const password = 'Password123!'
+
+    const registerRes = await app.inject({
+      method: 'POST',
+      url: '/auth/register',
+      payload: {
+        firstName: 'Contract',
+        lastName: 'Guru',
+        email,
+        password,
+      },
+    })
+    expect(registerRes.statusCode, registerRes.body).toBe(201)
+
+    const verifyRes = await app.inject({
+      method: 'POST',
+      url: '/auth/verify-otp',
+      payload: { email, channel: 'email', otp: '123456' },
+    })
+    expect(verifyRes.statusCode).toBe(200)
+
+    const completeRes = await app.inject({
+      method: 'POST',
+      url: '/auth/register/complete',
+      payload: { email },
+    })
+    expect(completeRes.statusCode).toBe(200)
+
+    const authPayload = completeRes.json() as {
+      user: { id: string }
+      tokens: { accessToken: string }
+    }
+
+    const userId = authPayload.user.id
+    const accessToken = authPayload.tokens.accessToken
+
+    const uploadSession = await prisma.uploadSession.create({
+      data: {
+        userId,
+        sourceApp: 'whatsapp',
+        status: 'PARSED',
+      },
+      select: { id: true },
+    })
+
+    const analysisRun = await prisma.analysisRun.create({
+      data: {
+        uploadSessionId: uploadSession.id,
+        status: 'COMPLETED',
+        model: 'mock-analysis-v1',
+      },
+      select: { id: true },
+    })
+
+    const createThreadRes = await app.inject({
+      method: 'POST',
+      url: '/love-guru/threads',
+      headers: { authorization: `Bearer ${accessToken}` },
+      payload: {
+        analysisId: analysisRun.id,
+        persona: 'coach',
+        tone: 'balanced',
+      },
+    })
+    expect(createThreadRes.statusCode, createThreadRes.body).toBe(201)
+    const threadId = (createThreadRes.json() as { thread: { id: string } }).thread.id
+
+    const messageRes = await app.inject({
+      method: 'POST',
+      url: `/love-guru/threads/${threadId}/messages`,
+      headers: { authorization: `Bearer ${accessToken}` },
+      payload: { text: 'Can you explain what communication pattern you notice?' },
+    })
+
+    expect(messageRes.statusCode, messageRes.body).toBe(201)
+
+    const responseSchema = z.object({
+      userMessage: z.object({
+        id: z.string().min(1),
+        threadId: z.string().min(1),
+        role: z.literal('user'),
+        content: z.string().min(1),
+        createdAt: z.string().min(1),
+      }),
+      assistantMessage: z.object({
+        id: z.string().min(1),
+        threadId: z.string().min(1),
+        role: z.literal('assistant'),
+        content: z.string().min(1),
+        createdAt: z.string().min(1),
+      }),
+    })
+
+    const parsed = responseSchema.safeParse(messageRes.json())
     expect(parsed.success).toBe(true)
   })
 })

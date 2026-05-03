@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { UPLOAD_SESSION_STATUS } from 'third-person-ai/shared/statuses.js'
 
 
 const paginationSchema = z.object({
@@ -61,7 +62,7 @@ export const adminSessionListQuerySchema = paginationSchema.extend({
 export const adminSessionUpdateBodySchema = z
   .object({
     sourceApp: z.string().trim().min(1).transform(val => val.toLowerCase()).optional(),
-    status: z.string().trim().min(1).optional(),
+    status: z.enum(Object.values(UPLOAD_SESSION_STATUS) as [string, ...string[]]).optional(),
   })
   .refine((data) => Object.keys(data).length > 0, {
     message: 'At least one field is required',

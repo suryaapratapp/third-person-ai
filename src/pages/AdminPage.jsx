@@ -10,6 +10,7 @@ import {
   updateAdminUploadSession,
   updateAdminUser,
 } from '../services/adminServiceApi'
+import { UPLOAD_SESSION_STATUS } from '../contracts/statuses'
 
 const defaultUserForm = {
   email: '',
@@ -215,7 +216,7 @@ export default function AdminPage() {
 
         {isUnauthorized ? (
           <GlassCard className="border-rose-200/30 bg-rose-300/10 p-5">
-            <p className="text-sm text-rose-100">Admin access required. Add your email to `ADMIN_EMAILS` on API and `VITE_ADMIN_EMAILS` on frontend.</p>
+            <p className="text-sm text-rose-100">Admin access required. Ask an administrator to add your account to `ADMIN_EMAILS` or `ADMIN_IDS` on the API.</p>
           </GlassCard>
         ) : null}
 
@@ -433,10 +434,11 @@ export default function AdminPage() {
                 className="h-10 rounded-lg border border-white/15 bg-slate-900/65 px-3 text-sm text-white outline-none"
               >
                 <option value="">All statuses</option>
-                <option value="READY">READY</option>
-                <option value="ANALYZING">ANALYZING</option>
-                <option value="FAILED">FAILED</option>
-                <option value="PARSED">PARSED</option>
+                <option value={UPLOAD_SESSION_STATUS.READY}>{UPLOAD_SESSION_STATUS.READY}</option>
+                <option value={UPLOAD_SESSION_STATUS.QUEUED}>{UPLOAD_SESSION_STATUS.QUEUED}</option>
+                <option value={UPLOAD_SESSION_STATUS.PARSING}>{UPLOAD_SESSION_STATUS.PARSING}</option>
+                <option value={UPLOAD_SESSION_STATUS.PARSED}>{UPLOAD_SESSION_STATUS.PARSED}</option>
+                <option value={UPLOAD_SESSION_STATUS.FAILED}>{UPLOAD_SESSION_STATUS.FAILED}</option>
               </select>
             </div>
 
@@ -459,10 +461,11 @@ export default function AdminPage() {
                         onChange={(event) => void onUpdateSession(session, { status: event.target.value })}
                         className="h-8 rounded-lg border border-white/15 bg-slate-950/70 px-2 text-xs text-white outline-none"
                       >
-                        <option value="READY">READY</option>
-                        <option value="PARSED">PARSED</option>
-                        <option value="ANALYZING">ANALYZING</option>
-                        <option value="FAILED">FAILED</option>
+                        <option value={UPLOAD_SESSION_STATUS.READY}>{UPLOAD_SESSION_STATUS.READY}</option>
+                        <option value={UPLOAD_SESSION_STATUS.QUEUED}>{UPLOAD_SESSION_STATUS.QUEUED}</option>
+                        <option value={UPLOAD_SESSION_STATUS.PARSING}>{UPLOAD_SESSION_STATUS.PARSING}</option>
+                        <option value={UPLOAD_SESSION_STATUS.PARSED}>{UPLOAD_SESSION_STATUS.PARSED}</option>
+                        <option value={UPLOAD_SESSION_STATUS.FAILED}>{UPLOAD_SESSION_STATUS.FAILED}</option>
                       </select>
                       <button
                         type="button"

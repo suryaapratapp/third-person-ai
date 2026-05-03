@@ -164,7 +164,7 @@ export async function authRoutes(app: FastifyInstance) {
   })
 
   app.get('/protected/ping', {
-    preHandler: requireProtectedAuth,
+    preHandler: [requireProtectedAuth, rateLimitMiddleware],
     handler: async () => ({ ok: true }),
   })
 }

@@ -3,6 +3,7 @@ import { parseJsonSafely, validateDemoAnalysisPayload } from './demoAiSchema'
 import { hasDemoModeConsent, isDemoModeEnabled } from './demoModeService'
 import { loadPuter } from '../utils/loadPuter'
 import { computeMetrics, parseChat } from '../utils/chatParseAndMetrics'
+import { ANALYSIS_PUBLIC_STATUS } from '../contracts/statuses'
 
 export const DEMO_MODE_ENABLED_KEY = 'tpai_demo_mode_enabled'
 export const DEMO_MODE_CONSENT_KEY = 'tpai_demo_mode_consent'
@@ -256,7 +257,7 @@ function buildDemoAnalysisRecord({
     createdAt,
     title: `Demo analysis - ${new Date(createdAt).toLocaleDateString()} ${new Date(createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
     tags: ['Demo'],
-    status: 'READY',
+    status: ANALYSIS_PUBLIC_STATUS.READY,
     isDemo: true,
     sourceApp: 'paste',
     inputMethod: 'paste',

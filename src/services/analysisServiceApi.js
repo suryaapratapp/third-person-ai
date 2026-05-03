@@ -1,5 +1,6 @@
 import { apiFetch } from '../api/client'
 import { buildKeyMoments } from './dashboardDrilldownService'
+import { ANALYSIS_PUBLIC_STATUS, toPublicAnalysisStatus } from '../contracts/statuses'
 import {
   clearDemoAnalyses,
   deleteDemoAnalysis,
@@ -57,12 +58,8 @@ function safeArray(value) {
 }
 
 function normalizeStatus(status) {
-  const safe = String(status || '').toUpperCase()
-  if (safe === 'FAILED') return 'FAILED'
-  if (safe === 'QUEUED' || safe === 'RUNNING') return 'ANALYZING'
-  if (safe === 'COMPLETED') return 'READY'
-  if (safe === 'READY') return 'READY'
-  return 'READY'
+  const normalized = toPublicAnalysisStatus(status)
+  return normalized === ANALYSIS_PUBLIC_STATUS.PENDING ? ANALYSIS_PUBLIC_STATUS.READY : normalized
 }
 
 function toTimeline(sentimentPayload) {
@@ -215,7 +212,10 @@ function applyFilters(analyses, filters = {}) {
   }
 
   if (status) {
-    next = next.filter((analysis) => (analysis.status || 'READY').toUpperCase() === status)
+    next = next.filter(
+      (analysis) =>
+        (analysis.status || ANALYSIS_PUBLIC_STATUS.READY).toUpperCase() === status,
+    )
   }
 
   const sort = filters.sort || 'newest'

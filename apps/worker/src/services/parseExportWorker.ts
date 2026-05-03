@@ -2,11 +2,13 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { randomUUID } from 'node:crypto'
 import IORedis from 'ioredis'
-import { Job, Worker } from 'bullmq'
+import { Job, Queue, Worker } from 'bullmq'
+import type { PoolClient } from 'pg'
 import { pool } from '../utils/db'
 import { env, getRedisConnectionOptions } from '../utils/env'
 import { parseImportFile, ParseFailedError } from './chatParser'
 import { downloadFileBufferFromGoogleDrive } from './googleDrive'
+import { UPLOAD_SESSION_STATUS } from 'third-person-ai/shared/statuses.js'
 
 
 // [User Upload]
@@ -42,6 +44,42 @@ type UploadedFileRow = {
 }
 
 const redisConnection = new IORedis(env.redisUrl, getRedisConnectionOptions())
+const parseExportDeadLetterQueue = new Queue(env.parseExportDeadLetterQueueName, {
+  connection: redisConnection,
+})
+const parseJobStartTimes = new Map<string, number>()
+
+function getJobId(job: Job<ParseExportJobData>): string {
+  return String(job.id ?? `parse:${job.data.sessionId}`)
+}
+
+function logParseJob(
+  level: 'info' | 'error',
+  event: string,
+  job: Job<ParseExportJobData>,
+  extra: Record<string, unknown> = {},
+) {
+  const payload = {
+    worker: 'parse_export',
+    event,
+    jobId: getJobId(job),
+    sessionId: job.data.sessionId,
+    attempt: job.attemptsMade + 1,
+    maxAttempts: Number(job.opts.attempts ?? 1),
+    ...extra,
+  }
+
+  const line = JSON.stringify(payload)
+  if (level === 'error') {
+    console.error(line)
+    return
+  }
+  console.log(line)
+}
+
+function parseJobLockKey(sessionId: string): string {
+  return `job-lock:parse:${sessionId}`
+}
 
 function resolveStoredPath(storagePath: string): string {
   if (path.isAbsolute(storagePath)) return storagePath
@@ -95,14 +133,81 @@ async function writeParseReport(storagePath: string, report: unknown): Promise<v
   await writeFile(target, JSON.stringify(report, null, 2), 'utf-8')
 }
 
-async function setSessionStatus(sessionId: string, status: string) {
-  await pool.query('UPDATE "upload_sessions" SET "status" = $1 WHERE "id" = $2', [status, sessionId])
+function buildFallbackParseFailedPayload(reason: string) {
+  return {
+    error: 'ParseFailed',
+    detectedFormat: 'unknown',
+    reason,
+    expectedExamples: [],
+    stats: {
+      totalLines: 0,
+      matchedLines: 0,
+      ignoredLines: 0,
+    },
+    firstIgnoredLines: [],
+    tips: [
+      'Verify your export format is supported for the selected app.',
+      'Export without media or attachments and retry.',
+      'If this keeps failing, try paste mode with plain text.',
+    ],
+  }
+}
+
+async function setSessionStatus(sessionId: string, status: string, parseReport: unknown | null = null) {
+  await pool.query('UPDATE "upload_sessions" SET "status" = $1, "parseReportJson" = $2::jsonb WHERE "id" = $3', [
+    status,
+    parseReport ? JSON.stringify(parseReport) : null,
+    sessionId,
+  ])
+}
+
+type DbMessage = {
+  timestamp: Date
+  sender: string
+  text: string
+  meta?: Record<string, unknown>
+}
+
+async function insertMessagesBatch(
+  client: PoolClient,
+  sessionId: string,
+  messages: DbMessage[],
+): Promise<void> {
+  if (!messages.length) return
+
+  const chunkSize = 500
+  for (let index = 0; index < messages.length; index += chunkSize) {
+    const chunk = messages.slice(index, index + chunkSize)
+    const values: Array<string | null> = []
+    const placeholders: string[] = []
+
+    chunk.forEach((message, chunkIndex) => {
+      const base = chunkIndex * 6
+      placeholders.push(
+        `($${base + 1}, $${base + 2}, $${base + 3}, $${base + 4}, $${base + 5}, $${base + 6}::jsonb, NOW())`,
+      )
+      values.push(
+        randomUUID(),
+        sessionId,
+        message.timestamp.toISOString(),
+        message.sender,
+        message.text,
+        message.meta ? JSON.stringify(message.meta) : null,
+      )
+    })
+
+    await client.query(
+      `INSERT INTO messages (id, "uploadSessionId", timestamp, sender, text, meta, "createdAt")
+       VALUES ${placeholders.join(',')}`,
+      values,
+    )
+  }
 }
 
 async function processParseExportJob(job: Job<ParseExportJobData>) {
   const { sessionId } = job.data
 
-  await setSessionStatus(sessionId, 'PARSING')
+  await setSessionStatus(sessionId, UPLOAD_SESSION_STATUS.PARSING, null)
 
   const sessionResult = await pool.query<{ id: string; sourceApp: string }>(
     'SELECT "id", "sourceApp" FROM "upload_sessions" WHERE "id" = $1',
@@ -177,8 +282,18 @@ async function processParseExportJob(job: Job<ParseExportJobData>) {
       fileBuffer,
     })
   } catch (error) {
-    if (error instanceof ParseFailedError && localStoragePath) {
-      await writeParseReport(localStoragePath, error.payload)
+    if (error instanceof ParseFailedError) {
+      await setSessionStatus(sessionId, UPLOAD_SESSION_STATUS.FAILED, error.payload)
+      if (localStoragePath) {
+        await writeParseReport(localStoragePath, error.payload)
+      }
+      throw error
+    }
+    const message = error instanceof Error ? error.message : 'Unknown parse error'
+    const payload = buildFallbackParseFailedPayload(message)
+    await setSessionStatus(sessionId, UPLOAD_SESSION_STATUS.FAILED, payload)
+    if (localStoragePath) {
+      await writeParseReport(localStoragePath, payload)
     }
     throw error
   }
@@ -189,22 +304,12 @@ async function processParseExportJob(job: Job<ParseExportJobData>) {
     await client.query('BEGIN')
     await client.query('DELETE FROM "messages" WHERE "uploadSessionId" = $1', [sessionId])
 
-    for (const message of messages) {
-      await client.query(
-        `INSERT INTO messages (id, "uploadSessionId", timestamp, sender, text, meta, "createdAt")
-         VALUES ($1, $2, $3, $4, $5, $6::jsonb, NOW())`,
-        [
-          randomUUID(),
-          sessionId,
-          message.timestamp.toISOString(),
-          message.sender,
-          message.text,
-          message.meta ? JSON.stringify(message.meta) : null,
-        ],
-      )
-    }
+    await insertMessagesBatch(client, sessionId, messages)
 
-    await client.query('UPDATE "upload_sessions" SET "status" = $1 WHERE "id" = $2', ['PARSED', sessionId])
+    await client.query(
+      'UPDATE "upload_sessions" SET "status" = $1, "parseReportJson" = $2::jsonb WHERE "id" = $3',
+      [UPLOAD_SESSION_STATUS.PARSED, JSON.stringify(parsed.report), sessionId],
+    )
     await client.query('COMMIT')
     if (localStoragePath) {
       await writeParseReport(localStoragePath, parsed.report)
@@ -225,13 +330,24 @@ async function processParseExportJob(job: Job<ParseExportJobData>) {
 export const parseExportWorker = new Worker<ParseExportJobData>(
   env.parseExportQueueName,
   async (job) => {
+    const startedAt = Date.now()
+    parseJobStartTimes.set(getJobId(job), startedAt)
+    logParseJob('info', 'started', job)
+
     try {
       await processParseExportJob(job)
-      console.log(`[worker] completed parse_export for session ${job.data.sessionId}`)
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown worker error'
-      await setSessionStatus(job.data.sessionId, 'FAILED')
-      console.error(`[worker] session ${job.data.sessionId} failed: ${message}`)
+      if (error instanceof ParseFailedError) {
+        await setSessionStatus(job.data.sessionId, UPLOAD_SESSION_STATUS.FAILED, error.payload)
+      } else {
+        await setSessionStatus(
+          job.data.sessionId,
+          UPLOAD_SESSION_STATUS.FAILED,
+          buildFallbackParseFailedPayload(message),
+        )
+      }
+      logParseJob('error', 'failed-in-processor', job, { reason: message })
       throw error
     }
   },
@@ -242,15 +358,41 @@ export const parseExportWorker = new Worker<ParseExportJobData>(
 )
 
 parseExportWorker.on('completed', (job) => {
-  console.log(`[worker] completed parse_export for session ${job.data.sessionId}`)
+  const startedAt = parseJobStartTimes.get(getJobId(job)) ?? Date.now()
+  const durationMs = Date.now() - startedAt
+  parseJobStartTimes.delete(getJobId(job))
+  logParseJob('info', 'completed', job, { durationMs })
+  void redisConnection.del(parseJobLockKey(job.data.sessionId))
 })
 
 parseExportWorker.on('failed', (job, error) => {
   if (!job) return
-  console.error(`[worker] failed parse_export for session ${job.data.sessionId}: ${error.message}`)
+  const startedAt = parseJobStartTimes.get(getJobId(job)) ?? Date.now()
+  const durationMs = Date.now() - startedAt
+  logParseJob('error', 'failed', job, { durationMs, reason: error.message })
+  const maxAttempts = Number(job.opts.attempts ?? 1)
+  if (job.attemptsMade >= maxAttempts) {
+    void parseExportDeadLetterQueue.add(
+      'parse_export_dead_letter',
+      {
+        queue: env.parseExportQueueName,
+        sessionId: job.data.sessionId,
+        reason: error.message,
+        attemptsMade: job.attemptsMade,
+        failedAt: new Date().toISOString(),
+      },
+      {
+        removeOnComplete: 100,
+        removeOnFail: 100,
+      },
+    )
+    void redisConnection.del(parseJobLockKey(job.data.sessionId))
+    parseJobStartTimes.delete(getJobId(job))
+  }
 })
 
 export async function closeWorker() {
   await parseExportWorker.close()
+  await parseExportDeadLetterQueue.close()
   await redisConnection.quit()
 }

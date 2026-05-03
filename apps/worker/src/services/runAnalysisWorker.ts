@@ -1,5 +1,5 @@
 import IORedis from 'ioredis'
-import { Job, Worker } from 'bullmq'
+import { Job, Queue, Worker } from 'bullmq'
 import { randomUUID } from 'node:crypto'
 import type { PoolClient } from 'pg'
 import { pool } from '../utils/db'
@@ -7,6 +7,7 @@ import { env, getRedisConnectionOptions } from '../utils/env'
 import { runAnalysisPipeline } from './analysisPipeline'
 import { enqueueAggregatePersonalityJob } from './aggregatePersonalityWorker'
 import { estimateCostUsd, logAIUsage } from './aiUsageLogger'
+import { ANALYSIS_RUN_STATUS } from 'third-person-ai/shared/statuses.js'
 
 // UPLOAD FILE
 //    ↓
@@ -29,6 +30,43 @@ type RunAnalysisJobData = {
 }
 
 const redisConnection = new IORedis(env.redisUrl, getRedisConnectionOptions())
+const analysisDeadLetterQueue = new Queue(env.analysisDeadLetterQueueName, {
+  connection: redisConnection,
+})
+const analysisJobStartTimes = new Map<string, number>()
+
+function getJobId(job: Job<RunAnalysisJobData>): string {
+  return String(job.id ?? `analysis:${job.data.analysisRunId}`)
+}
+
+function logAnalysisJob(
+  level: 'info' | 'error',
+  event: string,
+  job: Job<RunAnalysisJobData>,
+  extra: Record<string, unknown> = {},
+) {
+  const payload = {
+    worker: 'run_analysis',
+    event,
+    jobId: getJobId(job),
+    analysisRunId: job.data.analysisRunId,
+    sessionId: job.data.sessionId,
+    attempt: job.attemptsMade + 1,
+    maxAttempts: Number(job.opts.attempts ?? 1),
+    ...extra,
+  }
+
+  const line = JSON.stringify(payload)
+  if (level === 'error') {
+    console.error(line)
+    return
+  }
+  console.log(line)
+}
+
+function analysisSessionLockKey(sessionId: string): string {
+  return `job-lock:analysis-session:${sessionId}`
+}
 
 async function setAnalysisStatus(analysisRunId: string, status: string) {
   await pool.query('UPDATE analysis_runs SET status = $1 WHERE id = $2', [status, analysisRunId])
@@ -50,7 +88,7 @@ async function saveInsight(
 async function processRunAnalysisJob(job: Job<RunAnalysisJobData>) {
   const { analysisRunId, sessionId } = job.data
 
-  await setAnalysisStatus(analysisRunId, 'RUNNING')
+  await setAnalysisStatus(analysisRunId, ANALYSIS_RUN_STATUS.RUNNING)
   const analysisResult = await runAnalysisPipeline(sessionId)
   const insights = analysisResult.insights
 
@@ -68,7 +106,7 @@ async function processRunAnalysisJob(job: Job<RunAnalysisJobData>) {
     await saveInsight(client, analysisRunId, 'analysis_meta', insights.meta)
 
     await client.query('UPDATE analysis_runs SET status = $1 WHERE id = $2', [
-      'COMPLETED',
+      ANALYSIS_RUN_STATUS.COMPLETED,
       analysisRunId,
     ])
     await client.query('COMMIT')
@@ -129,13 +167,16 @@ async function processRunAnalysisJob(job: Job<RunAnalysisJobData>) {
 export const runAnalysisWorker = new Worker<RunAnalysisJobData>(
   env.analysisQueueName,
   async (job) => {
+    const startedAt = Date.now()
+    analysisJobStartTimes.set(getJobId(job), startedAt)
+    logAnalysisJob('info', 'started', job)
+
     try {
       await processRunAnalysisJob(job)
-      console.log(`[worker] completed run_analysis for analysisRun ${job.data.analysisRunId}`)
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown analysis worker error'
-      await setAnalysisStatus(job.data.analysisRunId, 'FAILED')
-      console.error(`[worker] analysis ${job.data.analysisRunId} failed: ${message}`)
+      await setAnalysisStatus(job.data.analysisRunId, ANALYSIS_RUN_STATUS.FAILED)
+      logAnalysisJob('error', 'failed-in-processor', job, { reason: message })
       throw error
     }
   },
@@ -146,12 +187,38 @@ export const runAnalysisWorker = new Worker<RunAnalysisJobData>(
 )
 
 runAnalysisWorker.on('completed', (job) => {
-  console.log(`[worker] completed run_analysis for analysisRun ${job.data.analysisRunId}`)
+  const startedAt = analysisJobStartTimes.get(getJobId(job)) ?? Date.now()
+  const durationMs = Date.now() - startedAt
+  analysisJobStartTimes.delete(getJobId(job))
+  logAnalysisJob('info', 'completed', job, { durationMs })
+  void redisConnection.del(analysisSessionLockKey(job.data.sessionId))
 })
 
 runAnalysisWorker.on('failed', (job, error) => {
   if (!job) return
-  console.error(`[worker] failed run_analysis for analysisRun ${job.data.analysisRunId}: ${error.message}`)
+  const startedAt = analysisJobStartTimes.get(getJobId(job)) ?? Date.now()
+  const durationMs = Date.now() - startedAt
+  logAnalysisJob('error', 'failed', job, { durationMs, reason: error.message })
+  const maxAttempts = Number(job.opts.attempts ?? 1)
+  if (job.attemptsMade >= maxAttempts) {
+    void analysisDeadLetterQueue.add(
+      'run_analysis_dead_letter',
+      {
+        queue: env.analysisQueueName,
+        analysisRunId: job.data.analysisRunId,
+        sessionId: job.data.sessionId,
+        reason: error.message,
+        attemptsMade: job.attemptsMade,
+        failedAt: new Date().toISOString(),
+      },
+      {
+        removeOnComplete: 100,
+        removeOnFail: 100,
+      },
+    )
+    void redisConnection.del(analysisSessionLockKey(job.data.sessionId))
+    analysisJobStartTimes.delete(getJobId(job))
+  }
 })
 
 
@@ -159,5 +226,6 @@ runAnalysisWorker.on('failed', (job, error) => {
 
 export async function closeRunAnalysisWorker() {
   await runAnalysisWorker.close()
+  await analysisDeadLetterQueue.close()
   await redisConnection.quit()
 }

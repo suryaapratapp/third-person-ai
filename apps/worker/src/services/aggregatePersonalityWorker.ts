@@ -7,6 +7,7 @@ import { z } from 'zod'
 import { pool } from '../utils/db'
 import { env, getRedisConnectionOptions } from '../utils/env'
 import { estimateCostUsd, logAIUsage } from './aiUsageLogger'
+import { ANALYSIS_RUN_STATUS } from 'third-person-ai/shared/statuses.js'
 
 
 // Takes multiple past “analysis runs” of a person
@@ -30,10 +31,41 @@ type InsightRow = {
 }
 
 const redisConnection = new IORedis(env.redisUrl, getRedisConnectionOptions())
+const personalityJobStartTimes = new Map<string, number>()
 
 const enqueueQueue = new Queue<AggregatePersonalityJobData>(env.aggregatePersonalityQueueName, {
   connection: redisConnection,
 })
+
+function getJobId(job: Job<AggregatePersonalityJobData>): string {
+  return String(job.id ?? `personality:${job.data.personEntityId}:${job.data.analysisRunId}`)
+}
+
+function logPersonalityJob(
+  level: 'info' | 'error',
+  event: string,
+  job: Job<AggregatePersonalityJobData>,
+  extra: Record<string, unknown> = {},
+) {
+  const payload = {
+    worker: 'aggregate_personality',
+    event,
+    jobId: getJobId(job),
+    analysisRunId: job.data.analysisRunId,
+    personEntityId: job.data.personEntityId,
+    userId: job.data.userId,
+    attempt: job.attemptsMade + 1,
+    maxAttempts: Number(job.opts.attempts ?? 1),
+    ...extra,
+  }
+
+  const line = JSON.stringify(payload)
+  if (level === 'error') {
+    console.error(line)
+    return
+  }
+  console.log(line)
+}
 
 const personalitySchema = z.object({
   summary: z.string().min(1),
@@ -101,9 +133,9 @@ async function loadAggregateInputs(personEntityId: string): Promise<InsightRow[]
     FROM analysis_runs ar
     LEFT JOIN insights i ON i.analysis_run_id = ar.id
     WHERE ar.person_entity_id = $1
-      AND ar.status = 'COMPLETED'
+      AND ar.status = $2
     ORDER BY ar."createdAt" DESC, i."createdAt" ASC`,
-    [personEntityId],
+    [personEntityId, ANALYSIS_RUN_STATUS.COMPLETED],
   )
 
   return result.rows
@@ -221,6 +253,9 @@ export async function enqueueAggregatePersonalityJob(data: AggregatePersonalityJ
 export const aggregatePersonalityWorker = new Worker<AggregatePersonalityJobData>(
   env.aggregatePersonalityQueueName,
   async (job) => {
+    const startedAt = Date.now()
+    personalityJobStartTimes.set(getJobId(job), startedAt)
+    logPersonalityJob('info', 'started', job)
     await processAggregatePersonalityJob(job)
   },
   {
@@ -230,14 +265,21 @@ export const aggregatePersonalityWorker = new Worker<AggregatePersonalityJobData
 )
 
 aggregatePersonalityWorker.on('completed', (job) => {
-  console.log(`[worker] completed aggregate_personality for personEntity ${job.data.personEntityId}`)
+  const startedAt = personalityJobStartTimes.get(getJobId(job)) ?? Date.now()
+  const durationMs = Date.now() - startedAt
+  personalityJobStartTimes.delete(getJobId(job))
+  logPersonalityJob('info', 'completed', job, { durationMs })
 })
 
 aggregatePersonalityWorker.on('failed', (job, error) => {
   if (!job) return
-  console.error(
-    `[worker] failed aggregate_personality for personEntity ${job.data.personEntityId}: ${error.message}`,
-  )
+  const startedAt = personalityJobStartTimes.get(getJobId(job)) ?? Date.now()
+  const durationMs = Date.now() - startedAt
+  personalityJobStartTimes.delete(getJobId(job))
+  logPersonalityJob('error', 'failed', job, {
+    durationMs,
+    reason: error.message,
+  })
 })
 
 export async function closeAggregatePersonalityWorker() {
